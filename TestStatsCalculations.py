@@ -46,6 +46,5 @@ def test_calc_max_drawdown_duration() -> None:
     max_drawdown_duration = calc_max_drawdown_duration(timeseries.rors)
     assert max_drawdown_duration == 6
 
-
 if __name__ == '__main__':
     pytest.main(['TestStatsCalculations.py', '-v'])

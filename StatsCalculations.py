@@ -7,11 +7,10 @@ import math
 import statistics
 import numpy as np
 from Entities import Timeseries, Manager
-
 OMEGA_ANNUALIZED_THRESHOLD = 0.005  # TODO: is there one threshold value or do we have different ones? ask Ranjan
 
 
-def calc_omega_score(rors: list[float]) -> float | None:
+def calc_omega_score(rors: list) -> float or None:
     """ Calculates Omega score for a given list of rors.
 
     :param rors: list of returns that will be used to calculate Omega score
@@ -28,9 +27,7 @@ def calc_omega_score(rors: list[float]) -> float | None:
         return numerator / denominator + 1
     else:
         return None
-
-
-def calc_annualized_return(rors: list[float]) -> float:
+def calc_annualized_return(rors: list) -> float:
     """ Calculates annualized return for a given list of rors.
     Annualized Return reference: https://www.investopedia.com/terms/a/annualized-total-return.asp
 
@@ -45,7 +42,7 @@ def calc_annualized_return(rors: list[float]) -> float:
 
 
 # TODO: risk free return rate for sharpe ratio?
-def calc_sharpe_ratio(rors: list[float]) -> float | None:
+def calc_sharpe_ratio(rors: list) -> float or None:
     """ Calculates (annualized) Sharpe Ratio for a given list of rors.
 
     :param rors: list of returns that will be used to calculate Sharpe Ratio
@@ -57,16 +54,9 @@ def calc_sharpe_ratio(rors: list[float]) -> float | None:
     return calc_annualized_return(rors) / (math.sqrt(statistics.variance(rors))) * math.sqrt(12)
 
 
-def calc_overall_score(manager: Manager) -> float:
-    """ Calculates overall score for a given Manager.
 
-        :param manager: Manager to calculate overall score for
-        :return: overall score
-        """
-    return 0
-
-
-def sync_returns(first_timeseries: Timeseries, second_timeseries: Timeseries) -> tuple[Timeseries, Timeseries]:
+#tuple[Timeseries, Timeseries]
+def sync_returns(first_timeseries: Timeseries, second_timeseries: Timeseries) -> tuple:
     """ Given two timeseries, this function returns the overlapping 'slices' of each timeseries.
 
     :param first_timeseries: The first timeseries to sync
@@ -102,8 +92,7 @@ def calc_pearson_correlation(first_timeseries: Timeseries, second_timeseries: Ti
 
     return np.corrcoef(synced_first_rors, synced_second_rors)[0, 1]
 
-
-def calc_drawdown_series(rors: list[float]) -> list[float] | None:
+def calc_drawdown_series(rors: list) -> list or None:
     """Calculate drawdown series for a given list of rors.
     VAMI Reference: https://corporatefinanceinstitute.com/resources/wealth-management/value-added-monthly-index-vami/
 
@@ -123,7 +112,7 @@ def calc_drawdown_series(rors: list[float]) -> list[float] | None:
     return dd_series
 
 
-def calc_max_drawdown(rors: list[float]) -> float:
+def calc_max_drawdown(rors: list) -> float:
     """ Calculate max. drawdown for a given list of rors.
 
     :param rors: list of returns used for calculation
@@ -132,7 +121,7 @@ def calc_max_drawdown(rors: list[float]) -> float:
     return min(calc_drawdown_series(rors))
 
 
-def calc_max_drawdown_length(rors: list[float]) -> int:
+def calc_max_drawdown_length(rors: list) -> int:
     """ Calculate length (previous peak to trough) of max. drawdown for a given timeseries.
 
     :param rors: list of returns used for calculation
@@ -152,7 +141,7 @@ def calc_max_drawdown_length(rors: list[float]) -> int:
     return trough_index - peak_index  # months between trough and previous peak
 
 
-def calc_max_drawdown_duration(rors: list[float]) -> int:
+def calc_max_drawdown_duration(rors: list) -> int:
     """ Calculate drawdown duration, or recovery time, of max. drawdown for a given timeseries.
 
     :param rors: list of returns used for calculation
