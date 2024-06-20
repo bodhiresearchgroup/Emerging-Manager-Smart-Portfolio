@@ -55,7 +55,7 @@ scores_and_weight_df = pd.DataFrame()
 
 # Process periods
 for i in range(len(date_range) - 1):
-    returns_folder = 'sub_manager_returns'
+    returns_folder = 'Data'
     start_date = "2003-01-01"
     end_date = date_range[i].strftime('%Y-%m-%d')
     
