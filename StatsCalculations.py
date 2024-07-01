@@ -18,7 +18,6 @@ def calc_omega_score(rors: list) -> float or None:
     """
     # turning compounded annualized threshold into monthly threshold
     monthly_threshold = math.pow((1 + OMEGA_ANNUALIZED_THRESHOLD), 1 / 12) - 1
-
     numerator = sum(rors) / len(rors) - monthly_threshold
     rors_below_threshold = [ror for ror in rors if ror < monthly_threshold]
     denominator = sum([monthly_threshold - ror for ror in rors_below_threshold]) / len(rors)
@@ -27,6 +26,8 @@ def calc_omega_score(rors: list) -> float or None:
         return numerator / denominator + 1
     else:
         return None
+    
+
 def calc_annualized_return(rors: list) -> float:
     """ Calculates annualized return for a given list of rors.
     Annualized Return reference: https://www.investopedia.com/terms/a/annualized-total-return.asp
@@ -52,7 +53,6 @@ def calc_sharpe_ratio(rors: list) -> float or None:
         return None
 
     return calc_annualized_return(rors) / (math.sqrt(statistics.variance(rors))) * math.sqrt(12)
-
 
 
 #tuple[Timeseries, Timeseries]
@@ -91,6 +91,7 @@ def calc_pearson_correlation(first_timeseries: Timeseries, second_timeseries: Ti
     synced_second_rors = synced_second_timeseries.rors
 
     return np.corrcoef(synced_first_rors, synced_second_rors)[0, 1]
+
 
 def calc_drawdown_series(rors: list) -> list or None:
     """Calculate drawdown series for a given list of rors.
