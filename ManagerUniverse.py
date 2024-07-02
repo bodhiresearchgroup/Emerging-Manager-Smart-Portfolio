@@ -6,12 +6,12 @@ This file performs the following tasks:
 2. Parse timeseries data and other information provided in the given data folder
 to create Manager objects (which populate the Universe and can be accessed through the Universe).
 
-3. TODO: Perform various statistical operations on all Managers in the Universe, updating their attributes.
+3. Perform various statistical operations on all Managers in the Universe, updating their attributes.
 
-4. TODO: Create Clusters, which are groupings of Managers based on the results of the above statistical operations.
+4. Create Clusters, which are groupings of Managers based on the results of the above statistical operations.
 These Clusters are accessed through the Universe.
 
-5: TODO: Display results
+5: Results displayed in UI_EMP.py
 """
 import os
 from Entities import Manager, Cluster
@@ -48,56 +48,50 @@ class ManagerUniverse:
         """
         
         # monthly_ror_dao: MonthlyRor object
-        # monthly_ror_timeseries: Timeseries object which have two lists
-        # containing dates and rors.
+        # monthly_ror_timeseries: Timeseries object which has two lists containing dates and rors.
 
         for i, filename in enumerate(os.listdir(path)):
             if filename == '.DS_Store':
                 continue
-            #print(i, filename)
+            # print(i, filename)
 
             monthly_ror_dao = MonthlyRor(path + '/' + filename)  # complete filepath to CSV from source
             monthly_ror_timeseries = monthly_ror_dao.get_timeseries(start_date=start_date, end_date=end_date)
             test_monthly_ror_timeseries = monthly_ror_dao.get_timeseries(start_date=test_start_date, end_date=test_end_date)
 
+            # Flagged. Need to do something here to ensure both timeseries were properly initialized
+            # before creating & adding manager.
             manager_name: str = monthly_ror_dao.manager_name
             fund_name: str = monthly_ror_dao.fund_name
 
             # For each new manager added in the universe, generate a new Manager object
             # and append this new manager into the universe manager list.
 
-            if manager_name not in self._managers:
-                new_manager = Manager(manager_name, fund_name, monthly_ror_timeseries, test_monthly_ror_timeseries)
-                self._managers.append(new_manager)
+            # if manager_name not in self._managers: # Flagged. This statement does not serve intended purpose
+            new_manager = Manager(manager_name, fund_name, monthly_ror_timeseries, test_monthly_ror_timeseries)
+            self._managers.append(new_manager)
 
             # print(f"Added {manager_name}")
+            
 
-    # Notice that before
     # Once we have populated all managers into the universe,
-    # Use for loop to perform all stats calculations on each manager.
+    # use for loop to perform all stats calculations on each manager.
     def perform_manager_stats_calculations(self):
-
         for manager in self._managers:
             rors = manager.timeseries.rors
             manager.omega_score = calc_omega_score(rors)
-            #print(manager.omega_score)
             if manager.omega_score is None:
                 print(f"Could not calculate Omega score for {manager.name}")
             manager.sharpe_ratio = calc_sharpe_ratio(rors)
             if manager.omega_score is None:
                 print(f"Could not calculate Sharpe ratio for {manager.name}")
-
             if len(rors) < 2:
                 print(f"Could not perform drawdown analysis for {manager.name}")
             else:
                 manager.max_drawdown = calc_max_drawdown(rors)
-                #print(manager.max_drawdown)
                 manager.max_drawdown_length = calc_max_drawdown_length(rors)
                 manager.max_drawdown_duration = calc_max_drawdown_duration(rors)
-            # I do not think that the overall score can be calculated here,
-            # It  can only be calculated in the cluster so each manager object
-            # should have a cluster instance
-            #manager.overall_score = calc_overall_score(manager)
+
 
     def populate_clusters(self):
         for head_manager in self._managers:
@@ -120,45 +114,6 @@ class ManagerUniverse:
             self._clusters.append(new_cluster)
             #print(f"Added {head_manager.name} centered cluster")
 
-    # Now we construct a manager universe with n managers and n clusters. Rank the managers in three metrics:
-    # this function returns a list of float containing each managers' weight which are calculated by eqaully
-    # weighted average
-    # def manager_weights(self):
-    #     # create a list containing all weights from all managers in the universe
-    #     manager_score = []
-
-    #     for each_cluster in self._clusters:
-
-    #         percentile_list = []
-
-    #         omega_data = [manager.omega_score for manager in each_cluster.managers]
-    #         head_omega_percentile = stats.percentileofscore(omega_data, each_cluster.head.omega_score)
-    #         percentile_list.append(head_omega_percentile)
-
-    #         max_dd_data = [manager.max_drawdown for manager in each_cluster.managers]
-    #         head_max_dd_percentile = stats.percentileofscore(max_dd_data, each_cluster.head.max_drawdown)
-    #         percentile_list.append(head_max_dd_percentile)
-
-    #         sharpe_data = [manager.sharpe_ratio for manager in each_cluster.managers]
-    #         head_sharpe_percentile = stats.percentileofscore(sharpe_data, each_cluster.head.sharpe_ratio)
-    #         percentile_list.append(head_sharpe_percentile)
-
-
-    #         # overall_score is before normalization
-    #         # overall_weight is after normalization
-
-    #         each_cluster.head.overall_score = np.mean(percentile_list)/100
-    #         manager_score.append(each_cluster.head.overall_score)
-    #     # normalized does not change the order of manager
-    #     normalized_manager_weights = preprocessing.normalize([manager_score])
-    #     normalized_manager_weights = normalized_manager_weights[0].tolist()
-    #     i = 0
-    #     while i < len(self._managers):
-    #         self._managers[i].overall_weight = normalized_manager_weights[i]
-    #         i += 1
-            
-    #     normalized_manager_weights = normalized_manager_weights / np.sum(normalized_manager_weights)       
-    #     return np.array(normalized_manager_weights)
 
     def ratings_df(self):
         # create a list containing all weights from all managers in the universe
@@ -437,7 +392,7 @@ class ManagerUniverse:
 
 if __name__ == '__main__':
 
-    returns_folder = 'manager_returns'
+    returns_folder = 'Data'
 
     # the para here can set to be the desired correlation.
     universe = ManagerUniverse(0.3)

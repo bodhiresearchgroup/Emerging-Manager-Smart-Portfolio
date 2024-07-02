@@ -67,6 +67,6 @@ How to run:
 ## Current Bugs & Issues
 1. Undefined behaviour when omega score/sharpe ratio/drawdown cannot be calculated for a manager.
 2. Undefined behaviour when a manager does not have enough data within the given date range.
-3. Manager entity seems to be storing funds, not managers (i.e., one manager can have two manager objects for two funds).
+3. Manager entity seems to be storing funds, not managers (i.e., one manager can have two Manager objects for two funds).
 4. No documentation for 'test_timeseries' instance attribute in Manager class. Not sure what it does but it appears often.
 5. Undefined behaviour when the correlation value given to ManagerUniverse is too large (i.e., no Managers are correlated, resulting in no clusters).

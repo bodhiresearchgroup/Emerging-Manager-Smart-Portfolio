@@ -52,11 +52,14 @@ class MonthlyRor:
             df = pd.read_csv(self.path, header=0)
             df = df.astype(CSV_TYPE_FORMAT)  # Ensure the 'Change' column is converted correctly
             df["date"] = pd.to_datetime(df["Date"])
-            #print(df)
+            
             if start_date:
                 df = df[df['date'] >= start_date]
             if end_date:
                 df = df[df['date'] <= end_date]
+
+            # if len(df) <= 1:
+            #     return None
 
             time_series = Timeseries()
             for row in df.itertuples(index=False, name=None):
@@ -72,27 +75,3 @@ class MonthlyRor:
 
             self.time_series = time_series
             return self.time_series
-    # def get_timeseries(self):
-    #     """ Parses CSV with filepath self.path and updates self.manager_name, self.fund_name, and self.time_series
-    #     with parsed information.
-
-    #     :return: Timeseries
-    #     """
-    #     df = pd.read_csv(self.path, header=0)
-
-
-    #     df.astype(CSV_TYPE_FORMAT)  # convert ror column values from str to float
-
-    #     time_series = Timeseries()
-    #     for row in df.itertuples(index=False, name=None):  # each row is a (manager, fund, date, ror) tuple
-    #         date = (datetime.strptime(row[2], CSV_DATETIME_FORMAT)).date()  # formats date str into datetime.date obj.
-    #         time_series.dates.append(date)
-    #         time_series.rors.append(row[3])
-
-    #         if self.manager_name == '':
-    #             self.manager_name = row[1]
-    #         if self.fund_name == '':
-    #             self.fund_name = row[1]
-
-    #     self.time_series = time_series
-    #     return self.time_series
