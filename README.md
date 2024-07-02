@@ -3,24 +3,29 @@
 Algorithm for classifying emerging managers. For additional context, [Ranjan's presentation.](https://drive.google.com/file/d/1wgCMWrMdHSyIR8qijBLeFdekC_snpbPq/view?usp=sharing)
 
 ## Current list of managers:
-- PlusPlus
+- Aegeri Capital
+- Breakout
 - Castlefield Associates
 - DCM Systematic
-- Mulvaney
+- Landscape
+- Machina (Neutron)
+- Mulvaney Capital 
+- Panview
+- PlusPlus Global Alpha
+- Pula Capital
+- Rosetta (DL One)
+- Rosetta (RL One)
 - Teza (Microstructure)
 - Teza (Systematic Futures)
-- Rosetta (RL One)
-- Rosetta (DL One)
-- Panview
-- Machina (Neutron)
 - Trident (GME)
-- Breakout
-- Landscape
-- Varick Capital
 
-Note: Data last updated to 2024-01-01 by Aarya for all managers in list, except:
-- panview only updated to 2023-07-01 -- we were kicked off the mailing list.
-- varick only updated to 2023-08-01 -- no newer emails in research inbox.
+To be added:
+- Bastion Asset Management 
+- Deep Field Capital (multiple strategies?)
+- III Capital (equity market-neutral program) (data unknown)
+- Tc43 LLC (data unknown)
+
+Note: Data last updated to 2024-05-01 by Sharon for all managers in list. Old manager .csv's that are no longer of interest are stored in the 'Old data' folder.
 
 ## Key Steps
 1. Initialize the algorithm.
@@ -28,9 +33,9 @@ Note: Data last updated to 2024-01-01 by Aarya for all managers in list, except:
     2. Perform various statistical calculations on all Managers and assign them scores for each statistical attribute.
 2. For each Manager, create a group of peers
     1. A Manager's peers are other Managers with highly correlated timeseries
-    2. TODO: assign a weighted score, based on statistical attributes, for the Manager and each of its peers (Note: done by Clara?)
-    3. TODO: normalize the weighted score to create a weighted timeseries for each Manager in the group (Note: done by Clara?)
-3. TODO: final set of weighted timeseries for all Managers is the output of the program.
+    2. Assign a weighted score, based on statistical attributes, for the Manager and each of its peers
+    3. Normalize the weighted score to create a weighted timeseries for each Manager in the group
+3. Final set of weighted timeseries for all Managers is the output of the program.
 4. TODO: How well does the weighted set of Managers perform? Backtest. Should we tweak the weighting, the statistical operations, etc? 
 
 ## 1. Initializing the algorithm
@@ -51,3 +56,17 @@ In `ManagerUniverse.perform_manager_stats_calculations`, we call various functio
 
 ## 2. Creating Manager groups
 After `populate_managers` and `perform_manager_stats_calculations`, `ManagerUniverse.py` starts by creating the highly correlated Manager groups (called clusters) in `populate_clusters`.
+
+## Running UI
+How to run:
+1. Open terminal
+2. Activate virtual environment
+3. cd folder path (C:...\GitHub\emerging_managers_project)
+4. run code: streamlit run UI_EMP.py
+
+## Current Bugs & Issues
+1. Undefined behaviour when omega score/sharpe ratio/drawdown cannot be calculated for a manager.
+2. Undefined behaviour when a manager does not have enough data within the given date range.
+3. Manager entity seems to be storing funds, not managers (i.e., one manager can have two manager objects for two funds).
+4. No documentation for 'test_timeseries' instance attribute in Manager class. Not sure what it does but it appears often.
+5. Undefined behaviour when the correlation value given to ManagerUniverse is too large (i.e., no Managers are correlated, resulting in no clusters).
