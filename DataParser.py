@@ -58,8 +58,7 @@ class MonthlyRor:
             if end_date:
                 df = df[df['date'] <= end_date]
 
-            # if len(df) <= 1:
-            #     return None
+            # Flagged. Need to do something here to ensure df is not empty.
 
             time_series = Timeseries()
             for row in df.itertuples(index=False, name=None):
