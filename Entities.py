@@ -28,7 +28,7 @@ class Timeseries:
 class Manager:
     """
     Contains all necessary information for an emerging manager.
-    TODO: add equality functions? Like to see whether Manager 1 > Manager 2. Maybe based on overall_score.
+    TODO: Prev: add equality functions? Like to see whether Manager 1 > Manager 2. Maybe based on overall_score.
 
     Instance Attributes:
     - name: the name of the manager
@@ -36,7 +36,8 @@ class Manager:
     - monthly_ror: monthly ror timeseries
     - omega_score: omega score
     - sharpe_ratio: modified sharpe ratio
-    - overall_score: manager's overall score
+    - overall_score: manager's overall score (before normalization)
+    - overall_weight: manager's overall score (after normalization)
     - max_drawdown: manager's maximum drawdown
     - max_drawdown_length: length (in months) of maximum drawdown. Measured from peak to trough.
     - max_drawdown_duration: duration/recovery time (in months) of maximum drawdown
@@ -49,7 +50,6 @@ class Manager:
     omega_score: float
     sharpe_ratio: float
     overall_score: float
-    # overall_weights is after normalization
     overall_weight:float
     vol_weight:float
     max_drawdown: float
@@ -67,7 +67,6 @@ class Manager:
         self.test_timeseries = test_timeseries
         self.omega_score = omega_score or 0
         self.sharpe_ratio = sharpe_ratio or 0
-        # self.overall_score = overall_score or 0
         self.max_drawdown = max_drawdown or 0
         self.max_drawdown_length = max_drawdown_length or 0
         self.max_drawdown_duration = max_drawdown_duration or 0
@@ -94,7 +93,7 @@ class Cluster:
     Instance Attributes:
     - managers: the set of Managers in this Cluster
     - head: head Manager in this Cluster
-    - TODO: add a correlation matrix for all managers in Cluster?
+    - TODO: Prev: add a correlation matrix for all managers in Cluster?
     """
 
     managers: set([])

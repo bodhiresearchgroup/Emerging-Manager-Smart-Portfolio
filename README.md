@@ -57,6 +57,14 @@ In `ManagerUniverse.perform_manager_stats_calculations`, we call various functio
 ## 2. Creating Manager groups
 After `populate_managers` and `perform_manager_stats_calculations`, `ManagerUniverse.py` starts by creating the highly correlated Manager groups (called clusters) in `populate_clusters`.
 
+## Downloading the code
+Working on the code using your local machine:
+1. Download and open GitHub desktop 
+2. Clone this repository 
+3. Click 'Open the project in your external editor' (e.g., VSCode)
+4. Set up a virtual environment for this project. 
+5. Create your own branch and make all edits there. Don't push to main.
+
 ## Running UI
 How to run:
 1. Open terminal
@@ -70,3 +78,7 @@ How to run:
 3. Manager entity seems to be storing funds, not managers (i.e., one manager can have two Manager objects for two funds).
 4. No documentation for 'test_timeseries' instance attribute in Manager class. Not sure what it does but it appears often.
 5. Undefined behaviour when the correlation value given to ManagerUniverse is too large (i.e., no Managers are correlated, resulting in no clusters).
+
+## Notes
+- Comments marked 'Flagged' indicate errors found within the code that need to be fixed/accounted for. (Sharon will do this).
+- Comments marked 'Prev:' indicate comments left by the previous authors of the code.

@@ -42,15 +42,20 @@ class MonthlyRor:
         self.time_series = time_series or []
     
     def get_timeseries(self, start_date=None, end_date=None):
-            """Parses CSV with filepath self.path and updates self.manager_name, self.fund_name, and self.time_series
+            """
+            Parses CSV with filepath self.path and updates self.manager_name, self.fund_name, and self.time_series
             with parsed information, optionally filtering by start and end date.
 
-            :param start_date: Start date for filtering (inclusive), as a string in 'YYYY-MM-DD' format.
-            :param end_date: End date for filtering (inclusive), as a string in 'YYYY-MM-DD' format.
-            :return: Timeseries
+            Parameters:
+                start_date: Start date for filtering (inclusive), as a string in 'YYYY-MM-DD' format.
+                end_date: End date for filtering (inclusive), as a string in 'YYYY-MM-DD' format.
+
+            Returns:
+                Timeseries: Timeseries object containing dates and rors for the fund.
             """
             df = pd.read_csv(self.path, header=0)
-            df = df.astype(CSV_TYPE_FORMAT)  # Ensure the 'Change' column is converted correctly
+            df = df.astype(CSV_TYPE_FORMAT)  # Prev: Ensure the 'Change' column is converted correctly
+            # Flagged. Inconcsistent capitalization of "date", possible bug?
             df["date"] = pd.to_datetime(df["Date"])
             
             if start_date:
@@ -67,6 +72,7 @@ class MonthlyRor:
                 time_series.rors.append(row[3])
 
                 # Update manager_name and fund_name from the first row if they are empty
+                # Flagged. Bad code style. 
                 if self.manager_name == '':
                     self.manager_name = row[0]  # Assuming the first element is the manager name
                 if self.fund_name == '':
