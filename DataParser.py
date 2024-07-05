@@ -47,8 +47,8 @@ class MonthlyRor:
             with parsed information, optionally filtering by start and end date.
 
             Parameters:
-                start_date: Start date for filtering (inclusive), as a string in 'YYYY-MM-DD' format.
-                end_date: End date for filtering (inclusive), as a string in 'YYYY-MM-DD' format.
+                start_date: Start date for filtering (inclusive), a string in 'YYYY-MM-DD' format.
+                end_date: End date for filtering (inclusive), a string in 'YYYY-MM-DD' format.
 
             Returns:
                 Timeseries: Timeseries object containing dates and rors for the fund.

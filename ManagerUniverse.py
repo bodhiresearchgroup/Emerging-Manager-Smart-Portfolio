@@ -43,7 +43,12 @@ class ManagerUniverse:
         """
         Create Manager objects from all CSVs in provided folder. Add them to Universe.
 
-        path: filepath to data folder
+        Parameters:
+            path: Filepath to data folder.
+            start_date: Start date for filtering (inclusive), a string in 'YYYY-MM-DD' format.
+            end_date: End date for filtering (inclusive), a string in 'YYYY-MM-DD' format.
+            test_start_date: Flagged.
+            test_end_date: 
         """
         for i, filename in enumerate(os.listdir(path)):
             if filename == '.DS_Store':
@@ -119,7 +124,7 @@ class ManagerUniverse:
         Assigns scores to each manager based on performance relative to the others.
 
         Returns:
-            DataFrame: Pandas DataFrame of managers, performance measures, and scores
+            pd.DataFrame: Pandas DataFrame of managers, performance measures, and scores.
         """
         manager_score = []
         manager_name = []
@@ -185,8 +190,8 @@ class ManagerUniverse:
         # Use the manager names as the indices of the dataframe
         ratings_df.set_index("Name", inplace=True)
 
-        # Normalize the overall manager scores (from 0-100)
-        normalized_manager_weights = manager_score
+        # Normalize the overall manager scores (from 0-100). 
+        normalized_manager_weights = manager_score # Flagged. Redundant line?
         normalized_manager_weights = normalized_manager_weights / np.sum(normalized_manager_weights)
         i = 0
         while i < len(self._managers):
@@ -246,7 +251,7 @@ class ManagerUniverse:
         Creates a dataframe of the rate of returns for each manager/fund.
 
         Returns:
-            DataFrame: Rate of returns. Columns are managers/funds, rows are months.
+            pd.DataFrame: Rate of returns. Columns are managers/funds, rows are months.
         """
         manager_df = pd.DataFrame()
         
@@ -297,14 +302,14 @@ class ManagerUniverse:
     # Weighted Portfolios
     ####
 
-    # FLAGGED. There is duplicate code below that may be mergeable.
+    # FLAGGED. There is duplicate code below that may be mergeable. (Pass weights as parameter.)
 
     def weighted_returns_portfolio(self):
         """
-        Creates a dataframe of the weighted rate of returns for each manager/fund.
+        Creates a dataframe of performance-weighted rate of returns for each manager/fund.
 
         Returns:
-            DataFrame: Weighted rate of returns. Columns are managers/funds, rows are months.
+            pd.DataFrame: Weighted rate of returns. Columns are managers/funds, rows are months.
         """
         # Create a DataFrame to hold the weighted returns
         weighted_returns_df = pd.DataFrame()
@@ -331,10 +336,10 @@ class ManagerUniverse:
     
     def volatility_weighted_returns_portfolio(self):
         """
-        Creates a dataframe of the weighted volatilities for each manager/fund.
+        Creates a dataframe of volatility-weighted returns for each manager/fund.
 
         Returns:
-            DataFrame: Weighted rate of returns. Columns are managers/funds, rows are months.
+            pd.DataFrame: Weighted rate of returns. Columns are managers/funds, rows are months.
         """
         # Create a DataFrame to hold the weighted returns
         vol_weighted_returns_df = pd.DataFrame()
@@ -360,6 +365,12 @@ class ManagerUniverse:
 
 
     def equal_weighted_returns_portfolio(self):
+        """
+        Creates a dataframe of equal-weighted returns for each manager/fund.
+
+        Returns:
+            pd.DataFrame: Equal-weighted rate of returns. Columns are managers/funds, rows are months.
+        """
         # Create a DataFrame to hold the weighted returns
         weighted_returns_df = pd.DataFrame()
         
@@ -391,10 +402,21 @@ class ManagerUniverse:
     # Analysis
     ####
     def calculate_metrics(df, risk_free_rate=0.03):
-        # Assuming the input is period returns, first convert to cumulative returns
+        """
+        Calculates the cumulative returns, total return, annualized return, annualized standard deviation, 
+        and Sharpe ratio of a series of returns. 
+
+        Parameters: 
+            df (pd.Series): A series of monthly returns.
+            risk_free_rate (float): The risk-free rate used to calculate the Sharpe ratio. 
+
+        Returns:
+            Tuple (pd.Series, dict)
+        """
+        # Create series of cumulative returns
         cumulative_returns = (1 + df).cumprod() - 1
-        
-        total_return = cumulative_returns.iloc[-1]   # Convert to percentage
+        # Get the total return and annual return rate (as a percentage)
+        total_return = cumulative_returns.iloc[-1]  
         days = (df.index[-1] - df.index[0]).days
         months = np.round(days / 30.44)  # Average number of days in a month
         annualized_return = ((1 + total_return) ** (12 / months) - 1)
@@ -403,17 +425,23 @@ class ManagerUniverse:
         annualized_std = monthly_returns.std() * np.sqrt(12)  # Annualize the standard deviation for monthly returns
         sharpe_ratio = (annualized_return - risk_free_rate) / annualized_std
         
-        dic = {
+        metrics = {
             'Total Return (%)': total_return,
             'Annualized Return (%)': annualized_return,
             'Annualized Std Dev (%)': annualized_std,
             'Sharpe Ratio': sharpe_ratio,
         }
         
-        return cumulative_returns, dic
+        return cumulative_returns, metrics
     
     
     def Portfolio_Performance(df_list):
+        """
+        For each differently weighted dataframe of returns, create one portfolio and plot it. 
+
+        Parameters: 
+            df_list (list(pd.DataFrame)): List of differently weighted returns.
+        """
         weight_order = ["EMP Weights", "Vol Weights", "Equal Weights"]
         plt.figure(figsize=(25, 10))
         for i, df in enumerate(df_list):
@@ -431,7 +459,7 @@ class ManagerUniverse:
 if __name__ == '__main__':
     returns_folder = 'Data'
 
-    # the para here can set to be the desired correlation.
+    # The param here can set to be the desired correlation.
     universe = ManagerUniverse(0.3)
 
     print("Initializing Universe...\n")
