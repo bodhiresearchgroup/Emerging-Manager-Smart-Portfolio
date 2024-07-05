@@ -66,6 +66,7 @@ Working on the code using your local machine:
 5. Create your own branch and make all edits there. Don't push to main.
 
 ## Running UI
+Note: Pula Capital.csv and Aegeri Capital.csv currently trigger edge cases that result in runtime errors. Move them out of the data folder before attempting to run the code, but DON'T push this change.
 How to run:
 1. Open terminal
 2. Activate virtual environment
@@ -80,6 +81,12 @@ How to run:
 5. Undefined behaviour when the correlation value given to ManagerUniverse is too large (i.e., no Managers are correlated, resulting in no clusters).
 6. Do we want to find the weighted sum of all managers/funds in the dataset or the weighted sum within clusters? Our algorithm is doing the former.
 
+## TODO
+- Implement new metrics to measure the managers' performance.
+- Implement new ways to display the data/results.
+- Implement functionality that allows the user/coder to specify which datasets to use. Potential extensions: random dataset generator, filter datasets based on different properties, etc.
+- Fix flagged errors (Sharon will do this).
+
 ## Notes
-- Comments marked 'Flagged' indicate errors found within the code that need to be fixed/accounted for. (Sharon will do this).
+- Comments marked 'Flagged' indicate errors found within the code that need to be fixed/accounted for.
 - Comments marked 'Prev:' indicate comments left by the previous authors of the code.
