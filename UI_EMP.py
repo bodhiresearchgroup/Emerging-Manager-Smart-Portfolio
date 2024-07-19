@@ -17,7 +17,7 @@ How to run:
 1. Open terminal
 2. Activate virtural environment (venv)
 3. cd folder path (C:...\GitHub\emerging_managers_project)
-4. run code: streamlit run UI_EMP.py:
+4. run code: streamlit run UI_EMP.py
 """
 
 def Portfolio_Performance(df_list):
@@ -42,21 +42,22 @@ st.title('Portfolio Analysis Tool')
 correlation_parameter = st.sidebar.slider('Correlation Parameter', min_value=0.0, max_value=1.0, value=0.3, step=0.05)
 
 start_date_input = st.sidebar.date_input('Start Date', value=pd.to_datetime('2022-01-01'))
-end_date_input = st.sidebar.date_input('End Date', value=pd.to_datetime('2023-06-01'))
+end_date_input = st.sidebar.date_input('End Date', value=pd.to_datetime('2024-04-01'))
 
 # Generate date range based on user input
 date_range = pd.date_range(start=start_date_input, end=end_date_input, freq='MS')
 
-# Initialize dataframes
+# Initialize dataframes and variables
 EMP_df = pd.DataFrame()
 vol_df = pd.DataFrame()
 equal_df = pd.DataFrame()
 scores_and_weight_df = pd.DataFrame()
 
+returns_folder = 'Data'
+start_date = "2003-01-01"
+
 # Process periods
 for i in range(len(date_range) - 1):
-    returns_folder = 'Data'
-    start_date = "2003-01-01"
     end_date = date_range[i].strftime('%Y-%m-%d')
     
     test_start_date = date_range[i + 1].strftime('%Y-%m-%d')
@@ -64,7 +65,6 @@ for i in range(len(date_range) - 1):
     
     # Display processing period
     # st.write(f"Processing period: Start date = {start_date}, End date = {end_date}, Test start date = {test_start_date}, Test end date = {test_end_date}")
-    
     universe = ManagerUniverse(correlation_parameter)
     universe.populate_managers(returns_folder, start_date=start_date, end_date=end_date, test_start_date=test_start_date, test_end_date=test_end_date)
     universe.perform_manager_stats_calculations()
@@ -97,7 +97,3 @@ st.dataframe(equal_df)
 
 st.subheader('Scores and Weights DataFrame')
 st.dataframe(scores_and_weight_df)
-
-
-
-

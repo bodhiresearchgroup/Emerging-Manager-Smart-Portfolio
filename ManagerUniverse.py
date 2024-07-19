@@ -404,7 +404,7 @@ class ManagerUniverse:
     def calculate_metrics(df, risk_free_rate=0.03):
         """
         Calculates the cumulative returns, total return, annualized return, annualized standard deviation, 
-        and Sharpe ratio of a series of returns. 
+        and Sharpe ratio of a timeseries. 
 
         Parameters: 
             df (pd.Series): A series of monthly returns.
@@ -445,7 +445,7 @@ class ManagerUniverse:
         weight_order = ["EMP Weights", "Vol Weights", "Equal Weights"]
         plt.figure(figsize=(25, 10))
         for i, df in enumerate(df_list):
-            monthly_returns_manager_sum = df.sum(axis=1)
+            monthly_returns_manager_sum = df.sum(axis=1) # Sum across each column to get a single weighted sum for each date
             portfolio_monthly_performance, metric_dic = ManagerUniverse.calculate_metrics(monthly_returns_manager_sum)    
             plt.plot(portfolio_monthly_performance.values.flatten())
             plt.xticks(range(len(portfolio_monthly_performance.index)), portfolio_monthly_performance.index.astype(str), rotation=45)
