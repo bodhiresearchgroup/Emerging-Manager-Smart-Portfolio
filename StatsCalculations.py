@@ -6,7 +6,7 @@ Reference for functions: https://drive.google.com/drive/folders/1BfRhlvYniOr13KQ
 import math
 import statistics
 import numpy as np
-from Entities import Timeseries, Manager
+from Entities import Timeseries, Program
 OMEGA_ANNUALIZED_THRESHOLD = 0.005  # TODO: Prev: is there one threshold value or do we have different ones? ask Ranjan
 
 

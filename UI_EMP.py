@@ -24,8 +24,8 @@ def Portfolio_Performance(df_list):
     weight_order = ["EMP Weights", "Vol Weights", "Equal Weights"]
     plt.figure(figsize=(25, 10))
     for i, df in enumerate(df_list):
-        monthly_returns_manager_sum = df.sum(axis=1)
-        portfolio_monthly_performance, metric_dic = ManagerUniverse.calculate_metrics(monthly_returns_manager_sum)    
+        monthly_returns_sum = df.sum(axis=1)
+        portfolio_monthly_performance, metric_dic = ManagerUniverse.calculate_metrics(monthly_returns_sum)    
         plt.plot(portfolio_monthly_performance.values.flatten())
         plt.xticks(range(len(portfolio_monthly_performance.index)), portfolio_monthly_performance.index.astype(str), rotation=45)
         plt.title("Cumulative Sum")
@@ -66,8 +66,8 @@ for i in range(len(date_range) - 1):
     # Display processing period
     # st.write(f"Processing period: Start date = {start_date}, End date = {end_date}, Test start date = {test_start_date}, Test end date = {test_end_date}")
     universe = ManagerUniverse(correlation_parameter)
-    universe.populate_managers(returns_folder, start_date=start_date, end_date=end_date, test_start_date=test_start_date, test_end_date=test_end_date)
-    universe.perform_manager_stats_calculations()
+    universe.populate_programs(returns_folder, start_date=start_date, end_date=end_date, test_start_date=test_start_date, test_end_date=test_end_date)
+    universe.perform_program_stats_calculations()
     universe.populate_clusters()
     
     ratings_df = universe.ratings_df()

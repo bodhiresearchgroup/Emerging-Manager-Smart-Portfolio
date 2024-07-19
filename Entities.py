@@ -25,15 +25,16 @@ class Timeseries:
         self.rors.append(ror)
 
 
-class Manager:
+class Program:
     """
     Contains all necessary information for an emerging manager.
     TODO: Prev: add equality functions? Like to see whether Manager 1 > Manager 2. Maybe based on overall_score.
 
     Instance Attributes:
-    - name: the name of the manager
-    - fund_name: fund name of the manager
-    - monthly_ror: monthly ror timeseries
+    - name: the name of the program
+    - manager: the name of the manager
+    - timeseries: monthly ror timeseries
+    - test_timeseries: FLAGGED. No clue
     - omega_score: omega score
     - sharpe_ratio: modified sharpe ratio
     - overall_score: manager's overall score (before normalization)
@@ -42,9 +43,8 @@ class Manager:
     - max_drawdown_length: length (in months) of maximum drawdown. Measured from peak to trough.
     - max_drawdown_duration: duration/recovery time (in months) of maximum drawdown
     """
-
     name: str
-    fund_name: str
+    manager: str
     timeseries: Timeseries
     test_timeseries: Timeseries
     omega_score: float
@@ -57,12 +57,12 @@ class Manager:
     max_drawdown_duration: int
     weighted_returns: float
 
-    def __init__(self, name: str, fund_name: str, 
+    def __init__(self, manager: str, fund_name: str,
                  timeseries: Timeseries, test_timeseries: Timeseries, 
                  omega_score=None, sharpe_ratio=None, max_drawdown=None, max_drawdown_length=None,
                  max_drawdown_duration=None) -> None:
-        self.name = name
-        self.fund_name = fund_name
+        self.name = fund_name
+        self.manager = manager
         self.timeseries = timeseries
         self.test_timeseries = test_timeseries
         self.omega_score = omega_score or 0
@@ -81,7 +81,6 @@ class Manager:
             return False
 
     def __hash__(self):
-
         return hash(self.name)
 
 
@@ -91,14 +90,14 @@ class Cluster:
     Contains information for a cluster of Managers.
 
     Instance Attributes:
-    - managers: the set of Managers in this Cluster
-    - head: head Manager in this Cluster
-    - TODO: Prev: add a correlation matrix for all managers in Cluster?
+    - programs: the set of Programs in this Cluster
+    - head: head Program in this Cluster
+    - TODO: Prev: add a correlation matrix for all programs in Cluster?
     """
 
-    managers: set([])
-    head: Manager
+    programs: set([])
+    head: Program
 
-    def __init__(self, head_manager, managers) -> None:
-        self.managers = managers
-        self.head = head_manager
+    def __init__(self, head_program, programs) -> None:
+        self.head = head_program
+        self.programs = programs
