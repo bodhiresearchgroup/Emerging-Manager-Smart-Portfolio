@@ -1,10 +1,10 @@
-
 """
 This file contains all Entity classes.
 """
 
 from datetime import datetime
 from dataclasses import dataclass
+import pandas as pd
 
 
 @dataclass
@@ -12,17 +12,53 @@ class Timeseries:
     """
     A simple class for representing a timeseries.
     """
-    dates: list
-    rors: list
+    data: pd.Series
 
-    def __init__(self, dates: list = None, rors: list= None) -> None:
-        self.dates = dates or []
-        self.rors = rors or []
-        self.weighted_rors = []
+    def __init__(self, data=None, dates=None, rors=None) -> None:
+        if data is not None:
+            self.data = data
+        else:
+            if dates is None:
+                dates = []
+            if rors is None:
+                rors = []
+            self.data = pd.Series(rors, index=dates)
 
-    def add_to_series(self, date: datetime.date, ror: float):
-        self.dates.append(date)
-        self.rors.append(ror)
+    def get_dates(self):
+        if not isinstance(self.data.index, pd.DatetimeIndex):
+            print("Index is not a DatetimeIndex. The current index is:")
+            print(self.data.index)
+        return self.data.index.date
+    
+    def get_rors(self):
+        return self.data.values
+    
+    def get_ror_by_date(self, date):
+        date = pd.Timestamp(date)
+        return self.data.get(date, None)
+
+    def add_to_series(self, date: datetime, ror: float):
+        """
+        Add a new date and rate of return to the series.
+
+        Parameters:
+            date: A datetime object representing the date.
+            ror: A float representing the rate of return for the date.
+        """
+        # Convert date to pandas.Timestamp for compatibility with the index
+        timestamp = pd.Timestamp(date)
+        
+        # Check if the date already exists in the series
+        if timestamp in self.data.index:
+            # Update the existing value 
+            self.data[timestamp] = ror
+        else: # Add new entry
+            self.data.at[timestamp] = ror
+            # Re-sort the index to maintain chronological order
+            self.data.sort_index(inplace=True)
+
+    def get_len(self):
+        return len(self.data)
 
 
 class Program:
@@ -34,7 +70,7 @@ class Program:
     - name: the name of the program
     - manager: the name of the manager
     - timeseries: monthly ror timeseries
-    - test_timeseries: FLAGGED. No clue
+    - test_timeseries: validation data used to test weights
     - omega_score: omega score
     - sharpe_ratio: modified sharpe ratio
     - overall_score: manager's overall score (before normalization)
@@ -58,20 +94,18 @@ class Program:
     weighted_returns: float
 
     def __init__(self, manager: str, fund_name: str,
-                 timeseries: Timeseries, test_timeseries: Timeseries, 
-                 omega_score=None, sharpe_ratio=None, max_drawdown=None, max_drawdown_length=None,
-                 max_drawdown_duration=None) -> None:
+                 timeseries: Timeseries, test_timeseries=None) -> None:
         self.name = fund_name
         self.manager = manager
         self.timeseries = timeseries
-        self.test_timeseries = test_timeseries
-        self.omega_score = omega_score or 0
-        self.sharpe_ratio = sharpe_ratio or 0
-        self.max_drawdown = max_drawdown or 0
-        self.max_drawdown_length = max_drawdown_length or 0
-        self.max_drawdown_duration = max_drawdown_duration or 0
-        self.overall_weight = 1
-        self.vol_weight = 1
+        self.test_timeseries = test_timeseries or None
+        self.omega_score = None
+        self.sharpe_ratio = None
+        self.overall_weight = None
+        self.vol_weight = None
+        self.max_drawdown = None
+        self.max_drawdown_length = None
+        self.max_drawdown_duration = None
 
 
     def __eq__(self, other):
