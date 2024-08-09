@@ -1,12 +1,3 @@
-import streamlit as st
-import pandas as pd
-import pandas as pd
-import matplotlib.pyplot as plt
-
-from main import Static_Performance, Portfolio_Performance
-
-# from tqdm import tqdm 
-# import seaborn as sns
 """
 Displays the results of the main algorithm using Streamlit.
 
@@ -16,6 +7,15 @@ How to run:
 3. cd folder path (C:...\GitHub\emerging_managers_project)
 4. run code: streamlit run UI_EMP.py
 """
+
+import streamlit as st
+import pandas as pd
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from main import Static_Performance, Portfolio_Performance
+# from tqdm import tqdm 
+# import seaborn as sns
 
 # Streamlit interface
 st.title('Portfolio Analysis Tool')
