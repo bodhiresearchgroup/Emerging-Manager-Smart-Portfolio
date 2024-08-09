@@ -4,9 +4,8 @@ Reference for functions: https://drive.google.com/drive/folders/1BfRhlvYniOr13KQ
 """
 
 import math
-import statistics
 import numpy as np
-from Entities import Timeseries, Program
+from Entities import Timeseries
 OMEGA_ANNUALIZED_THRESHOLD = 0.005  # TODO: Prev: is there one threshold value or do we have different ones? ask Ranjan
 
 
@@ -29,7 +28,18 @@ def calc_omega_score(rors: list) -> float:
         return None
     
 
-def calc_annualized_return(rors: list) -> float:
+def calc_cumulative_returns(rors: list) -> float:
+    """ 
+    Calculates cumulative returns for a given list of rors.
+
+    :param rors: list of returns 
+    :return: cumulative returns
+    """
+    cumulative_returns = (1 + rors).cumprod() - 1
+    return cumulative_returns
+    
+
+def calc_ann_return(rors: list) -> float:
     """ 
     Calculates annualized return for a given list of rors.
     Annualized Return reference: https://www.investopedia.com/terms/a/annualized-total-return.asp
@@ -37,15 +47,13 @@ def calc_annualized_return(rors: list) -> float:
     :param rors: list of returns 
     :return: annualized return
     """
-    cumulative_return = 1.0
-    for ror in rors:
-        cumulative_return = cumulative_return * (1 + ror)
+    total_return = calc_cumulative_returns(rors)[-1]
 
-    annualized_return = math.pow(cumulative_return, 12 / len(rors)) - 1
+    annualized_return = math.pow(total_return + 1, 12 / len(rors)) - 1
     return annualized_return
 
 
-# TODO: Prev: risk free return rate for sharpe ratio?
+# TODO: risk free return rate for sharpe ratio?
 def calc_sharpe_ratio(rors: list) -> float:
     """ Calculates (annualized) Sharpe Ratio for a given list of rors.
 
@@ -55,7 +63,7 @@ def calc_sharpe_ratio(rors: list) -> float:
     if len(rors) < 2:
         return None
 
-    return calc_annualized_return(rors) / (math.sqrt(statistics.variance(rors))) * math.sqrt(12)
+    return calc_ann_return(rors) / (rors.std() * np.sqrt(12))
 
 
 def sync_returns(first_timeseries: Timeseries, second_timeseries: Timeseries) -> tuple:
@@ -64,22 +72,19 @@ def sync_returns(first_timeseries: Timeseries, second_timeseries: Timeseries) ->
 
     :param first_timeseries: The first timeseries to sync
     :param second_timeseries: The second timeseries to sync
-    :return: A tuple containing slices of the given timeseries
+    :return: A tuple containing slices of the given timeseries, or None if the timeseries don't intersect
+
+    TODO: Decide a threshold for min intersection between two timeseries
     """
-    synced_first = Timeseries()
-    synced_second = Timeseries()
+    first_data, second_data = first_timeseries.data.align(second_timeseries.data, join='inner')
+    
+    if len(first_data) < 2: # Not enough meaningful data
+        return None, None
 
-    second_dates = second_timeseries.dates
-    for i in range(len(first_timeseries.dates)):
-        if first_timeseries.dates[i] in second_dates:
-            synced_first.add_to_series(date=first_timeseries.dates[i], ror=first_timeseries.rors[i])
+    first_synced = Timeseries(data=first_data)
+    second_synced = Timeseries(data=second_data)
 
-    synced_dates = synced_first.dates
-    for i in range(len(second_timeseries.dates)):
-        if second_timeseries.dates[i] in synced_dates:
-            synced_second.add_to_series(date=second_timeseries.dates[i], ror=second_timeseries.rors[i])
-
-    return synced_first, synced_second
+    return first_synced, second_synced
 
 
 def calc_pearson_correlation(first_timeseries: Timeseries, second_timeseries: Timeseries) -> float:
@@ -91,8 +96,10 @@ def calc_pearson_correlation(first_timeseries: Timeseries, second_timeseries: Ti
     :return: correlation
     """
     synced_first_timeseries, synced_second_timeseries = sync_returns(first_timeseries, second_timeseries)
-    synced_first_rors = synced_first_timeseries.rors
-    synced_second_rors = synced_second_timeseries.rors
+    if synced_first_timeseries is None:
+        return 0
+    synced_first_rors = synced_first_timeseries.get_rors()
+    synced_second_rors = synced_second_timeseries.get_rors()
 
     return np.corrcoef(synced_first_rors, synced_second_rors)[0, 1]
 
@@ -107,6 +114,7 @@ def calc_drawdown_series(rors: list) -> list:
     """
     if len(rors) < 2:
         return None
+    
     vami = [1.0]
     for ror in rors:
         vami.append(vami[-1] * (1.0 + ror))
