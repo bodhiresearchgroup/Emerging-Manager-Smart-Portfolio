@@ -1,18 +1,15 @@
 import streamlit as st
 import pandas as pd
-from tqdm import tqdm 
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.preprocessing import normalize
-import os
 
-from ManagerUniverse import ManagerUniverse
-import DataParser
-import Entities
+from main import Static_Performance, Portfolio_Performance
 
+# from tqdm import tqdm 
+# import seaborn as sns
 """
+Displays the results of the main algorithm using Streamlit.
+
 How to run:
 1. Open terminal
 2. Activate virtural environment (venv)
@@ -20,71 +17,30 @@ How to run:
 4. run code: streamlit run UI_EMP.py
 """
 
-def Portfolio_Performance(df_list):
-    weight_order = ["EMP Weights", "Vol Weights", "Equal Weights"]
-    plt.figure(figsize=(25, 10))
-    for i, df in enumerate(df_list):
-        monthly_returns_sum = df.sum(axis=1)
-        portfolio_monthly_performance, metric_dic = ManagerUniverse.calculate_metrics(monthly_returns_sum)    
-        plt.plot(portfolio_monthly_performance.values.flatten())
-        plt.xticks(range(len(portfolio_monthly_performance.index)), portfolio_monthly_performance.index.astype(str), rotation=45)
-        plt.title("Cumulative Sum")
-        st.write(weight_order[i] + ": " + str(metric_dic))
-    plt.legend(weight_order)
-    
-    st.pyplot(plt)
-
-
 # Streamlit interface
 st.title('Portfolio Analysis Tool')
 
-# User inputs for date range
+# User inputs for correlation and date range
 correlation_parameter = st.sidebar.slider('Correlation Parameter', min_value=0.0, max_value=1.0, value=0.3, step=0.05)
-
 start_date_input = st.sidebar.date_input('Start Date', value=pd.to_datetime('2022-01-01'))
 end_date_input = st.sidebar.date_input('End Date', value=pd.to_datetime('2024-04-01'))
 
-# Generate date range based on user input
-date_range = pd.date_range(start=start_date_input, end=end_date_input, freq='MS')
+# Initialize arguments for the main algorithm
+start_date = start_date_input.strftime('%Y-%m-%d')
+end_date = end_date_input.strftime('%Y-%m-%d')
+core_folder = 'Data'
+other_folder = 'Old data'
 
-# Initialize dataframes and variables
-EMP_df = pd.DataFrame()
-vol_df = pd.DataFrame()
-equal_df = pd.DataFrame()
-scores_and_weight_df = pd.DataFrame()
+# Get the weighted timeseries for each program from the main algorithm
+df_list, scores_df = Static_Performance(correlation_parameter, start_date, end_date, core_folder, other_folder)
+EMP_df, vol_df, equal_df = df_list
 
-returns_folder = 'Data'
-start_date = "2003-01-01"
+# Create a single hypothetical portfolio for each weighing method
+plt, stats = Portfolio_Performance(df_list)
 
-# Process periods
-for i in range(len(date_range) - 1):
-    end_date = date_range[i].strftime('%Y-%m-%d')
-    
-    test_start_date = date_range[i + 1].strftime('%Y-%m-%d')
-    test_end_date = test_start_date
-    
-    # Display processing period
-    # st.write(f"Processing period: Start date = {start_date}, End date = {end_date}, Test start date = {test_start_date}, Test end date = {test_end_date}")
-    universe = ManagerUniverse(correlation_parameter)
-    universe.populate_programs(returns_folder, start_date=start_date, end_date=end_date, test_start_date=test_start_date, test_end_date=test_end_date)
-    universe.perform_program_stats_calculations()
-    universe.populate_clusters()
-    
-    ratings_df = universe.ratings_df()
-    df_rp_weight = universe.weighted_returns_portfolio()
-    df_vol_weight = universe.volatility_weighted_returns_portfolio()
-    df_eq_weight = universe.equal_weighted_returns_portfolio()
-        
-    EMP_df = pd.concat([EMP_df, df_rp_weight])
-    vol_df = pd.concat([vol_df, df_vol_weight])
-    equal_df = pd.concat([equal_df, df_eq_weight])
-    
-    scores_and_weight_df = pd.concat([scores_and_weight_df, ratings_df])
-
-# Display 
-df_list = [EMP_df, vol_df, equal_df]
-
-Portfolio_Performance(df_list)
+# Display the results
+st.text(stats)
+st.pyplot(plt)
 
 st.subheader('EMP Portfolio Performance DataFrame')
 st.dataframe(EMP_df)
@@ -96,4 +52,4 @@ st.subheader('Equal Weighted Portfolio Performance DataFrame')
 st.dataframe(equal_df)
 
 st.subheader('Scores and Weights DataFrame')
-st.dataframe(scores_and_weight_df)
+st.dataframe(scores_df)
