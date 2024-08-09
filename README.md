@@ -2,6 +2,14 @@
 
 Algorithm for classifying emerging managers. For additional context, [Ranjan's presentation.](https://drive.google.com/file/d/1wgCMWrMdHSyIR8qijBLeFdekC_snpbPq/view?usp=sharing)
 
+## UPDATES (Aug 9)
+1. The algorithm has been modified to include a larger dataset, with clusters being formed only around a subset of core programs (see list below). Non-core programs are located in the folder `Old data`.
+2. The scoring system of the algorithm has been modified to give each core program a score from 1-3, with 3 being the best. The weight for each program is calculated using this score, normalized.
+3. `main.py` has been added for modularization. Namely, `calculate_metrics` and `Portfolio_Performance` have been moved from `ManagerUniverse.py`. The main algorithm in `UI_EMP.py` has also been moved to `main.py`. 
+4. The main algorithm logic has been changed. For more information, see the function docstrings of `Static_Performance` and `Iterative_Performance` in `main.py`. As discussed with Ranjan, we will be using the `Static_Performance` method for now. 
+5. Major flagged errors have been resolved. All core programs in the `Data` folder can now be included when running the UI.
+6. The `Timeseries` class has been refactored to hold data in a pd.Series instead of two lists for memory efficiency, indexing, etc.
+
 ## Current list of programs:
 - Aegeri Capital
 - Bastion Asset Management (BAM LS Equity Class M)
@@ -30,12 +38,12 @@ Note: Data last updated to 2024-05-01 by Sharon for all programs in list. Old pr
 ## Key Steps
 1. Initialize the algorithm.
     1. Parse timeseries data (month, rate of return) for each Program.
-    2. Perform various statistical calculations on all Programs and assign them scores for each statistical attribute.
+    2. Perform various statistical calculations on all Programs and assign them a score based on each statistical attribute.
 2. For each Program, create a group of peers
     1. A Program's peers are other Programs with highly correlated timeseries
-3. Assign a weighted score, based on statistical attributes, for each Program 
-    1. Normalize the weighted score to create a weighted timeseries for each Program 
-    2. Sum each weighted timeseries to get a single timeseries based on the weights among all Programs. This is the output of the program.
+3. Assign a score, based on statistical attributes, for each Program 
+    1. Normalize the score to create a weight that will be applied to each Program's timeseries.
+    2. Sum each weighted timeseries to get a single portfolio. This is the output of the program.
 4. Display the results
 5. TODO: How well does the weighted set of Programs perform? Backtest. Should we tweak the weighting, the statistical operations, etc? 
 
@@ -45,7 +53,7 @@ Note: Data last updated to 2024-05-01 by Sharon for all programs in list. Old pr
 ### Parsing timeseries data
 `ManagerUniverse.py` calls `Dataparser.py` to parse the timeseries CSVs in the `Data` directory. Each timeseries CSV **_must_** adhere to a specific header format, datetime format, and contain no missing values. Details are in the header for `Dataparser.py`.
 
-`Dataparser.py` returns the associated timeseries information. Specific details are in `Dataparser.get_timeseries`, as well as `Entities.py`.
+`DataParser.py` returns the associated timeseries information. Specific details are in `DataParser.get_timeseries`, as well as `Entities.py`.
 
 ### Creating Program objects
 After parsing the timeseries, `ManagerUniverse.py` creates Program entities and adds them to the simulation. A Program entity class contains information about the program, as well as the output of each statistical operation run on the program. Additional details for the Program entity are in `Entities.py`. 
@@ -53,24 +61,24 @@ After parsing the timeseries, `ManagerUniverse.py` creates Program entities and 
 `ManagerUniverse.py` creates Program entities in `populate_programs`. Now we have everything to begin the statistical calculations.
 
 ### Performing statistical operations
-In `ManagerUniverse.perform_program_stats_calculations`, we call various functions in `StatsCalculations.py` to get the results of the statistical calculations for each program. 
+In `ManagerUniverse.perform_program_stats_calculations`, we call various functions in `StatsCalculations.py` to measure the performance of each program. 
 
 ## 2. Creating Program groups
-`ManagerUniverse.py` starts by creating the correlated Program groups (called clusters) in `populate_clusters`.
+`ManagerUniverse.py` starts by creating the correlated Program groups (called Clusters) in `populate_clusters`.
 
 ## 3. Assigning weights
 `ratings_df` goes through each cluster and assigns scores to each program based on its performance relative to its cluster peers. These scores are normalized so that we can create a single weighted timeseries from the dot product of the scores and original timeseries of each program.
 
 ### Creating a weighted timeseries
-The 3 methods under the comment `# Weighted Portfolios` in `ManagerUniverse.py` perform the multiplication between weights and timeseries for each program. Each function uses different weights; see docstrings for more info. Note that this section will be refactored because it contains duplicate code. 
+The 3 methods under the comment `# Weighted Portfolios` in `ManagerUniverse.py` perform the multiplication between weights and timeseries for each program. Each function uses different weights; see docstrings for more info. 
 
-Finally, `Portfolio_Performance` sums each weighted timeseries to create a single timeseries and calls `calculate_metrics` to obtain various statistics. 
+## 4. Running the main algorithm
+The entry point of the application is located in `main.py`. Functions in this file call the various helper functions and modules described above to execute the algorithm from start to finish. 
 
-## 4. Displaying the results
-The final results are displayed in `UI_EMP.py`. This is also where all of the methods described above are called. It's currently being done in a way that I (Sharon) am mildly confused about; in particular, the for loop. Interpret the code how you will and we will regroup to discuss.
+## 5. Displaying the results
+The final results from `main.py` are displayed in `UI_EMP.py` using Streamlit. 
 
 ### Running UI
-Note: `Pula Capital.csv`, `Aegeri Capital.csv`, `Tc43.csv`, and `Bastion Asset Management.csv` currently trigger edge cases that result in runtime errors. Move them out of the data folder before attempting to run the code, but DON'T push this change.
 How to run:
 1. Open terminal
 2. Activate virtual environment
@@ -92,13 +100,11 @@ Before working on the code, please read the following [Guide to GitHub Workflow]
 - Implement new metrics to measure the programs' performance.
 - Implement new ways to display the data/results.
 - Implement functionality that allows the user to specify which datasets to use. Potential extensions: random dataset generator, filter datasets based on different properties, etc.
-- Fix flagged errors (Sharon will do this).
 
 ## Current Bugs & Issues
 1. Undefined behaviour when omega score/sharpe ratio/drawdown cannot be calculated for a program.
 2. Undefined behaviour when a program does not have enough data within the given date range.
-3. No documentation for 'test_timeseries' instance attribute in Program class. Usage unclear.
-4. Undefined behaviour when the correlation value given to ManagerUniverse is too large (i.e., no Programs are correlated, resulting in no clusters).
+3. Undefined behaviour when the correlation value given to ManagerUniverse is too large (i.e., no Programs are correlated, resulting in no clusters).
 
 ### Notes
 - Comments marked 'Flagged' indicate errors found within the code that need to be fixed/accounted for.
