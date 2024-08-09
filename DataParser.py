@@ -1,5 +1,5 @@
 """
-This file parses a CSV with given filepath to create a data object containing manager info.
+This file parses a CSV with a given filepath to create a data object containing manager info.
 
 Each CSV must adhere to the specific headers:
 Manager    Fund    Date    Change
@@ -15,7 +15,6 @@ All functions assume the CSV has NO missing values!
 
 from Entities import Timeseries
 import pandas as pd
-from datetime import datetime
 
 CSV_DATETIME_FORMAT = '%Y-%m-%d'
 CSV_TYPE_FORMAT = {'Change': 'float64'}
@@ -26,7 +25,7 @@ class DataParser:
     Instance Attributes:
     - path: filepath to CSV
     - manager_name: name of the manager in the CSV
-    - fund_name: name of the fund in the CSV
+    - program_name: name of the fund in the CSV
     - time_series: a list of Ror entities, parsed from CSV
     """
 
