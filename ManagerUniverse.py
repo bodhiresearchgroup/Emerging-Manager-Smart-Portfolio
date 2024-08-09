@@ -1,5 +1,5 @@
 """
-This file performs the following tasks:
+This file contains the following functions:
 
 1. Initialize an empty ManagerUniverse, the core simulation for our algorithm.
 
@@ -11,7 +11,7 @@ to create Program objects (which populate the Universe and can be accessed throu
 4. Create Clusters, which are groupings of Programs based on the results of the above statistical operations.
 These Clusters are accessed through the Universe.
 
-5: Results displayed in UI_EMP.py
+5: Calculate weights for each Program based on its performance relative to its cluster peers.
 """
 import os
 from Entities import Program, Cluster
@@ -24,7 +24,13 @@ import numpy as np
 import pandas as pd
 
 class ManagerUniverse:
-    """ Maintains all entities."""
+    """ Maintains all entities.
+    
+    Instance Attributes:
+    - _core_programs: The emerging managers that we are interested in buiding clusters around.
+    - _other_programs: The other managers in the universe.
+    - correlation_value: The minimum correlation between each program in a cluster.
+    """
     _core_programs: list
     _other_programs: list
     _clusters: list
@@ -180,7 +186,7 @@ class ManagerUniverse:
 
         ratings_df["Weights"] = normalized_weights
     
-        # Calculate volatility-based weights of each fund
+        # Calculate volatility-based weights of each program
         self.calculate_vol_weights(ratings_df)
 
         return ratings_df
@@ -188,7 +194,7 @@ class ManagerUniverse:
     
     def calculate_vol_weights(self, ratings_df):
         """
-        Calculate volatility-based weights of each program.
+        Calculate volatility-based weights for each program.
 
         Parameters:
             ratings_df (pd.Dataframe): The dataframe that stores the weights.
@@ -236,18 +242,14 @@ class ManagerUniverse:
         Returns:
             pd.DataFrame: Rate of returns. Columns are programs, rows are months.
         """
-        program_df = pd.DataFrame()
+        program_df = pd.DataFrame({'Date': pd.to_datetime([])})
         
         for program in self._core_programs:
             df = pd.DataFrame({
                 'Date': program.timeseries.get_dates(),
                 f'{program.name}': program.timeseries.get_rors(),
             })
-            # Merge this program's returns into the main DataFrame
-            if program_df.empty:
-                program_df = df
-            else:
-                program_df = pd.merge(program_df, df, on='Date', how='outer')
+            program_df = pd.merge(program_df, df, on='Date', how='outer')
         
         program_df['Date'] = pd.to_datetime(program_df['Date'])
         program_df.set_index('Date', inplace=True)
@@ -257,7 +259,6 @@ class ManagerUniverse:
     ####
     # Weighted Portfolios
     ####
-
     # FLAGGED. There is duplicate code below that may be mergeable. (Pass weight type as param?)
 
     def weighted_returns_portfolio(self, iter: bool):
@@ -298,7 +299,6 @@ class ManagerUniverse:
         Returns:
             pd.DataFrame: Weighted rate of returns. Columns are program, rows are months.
         """
-        # Create a DataFrame to hold the weighted returns
         vol_weighted_returns_df = pd.DataFrame({'Date': pd.to_datetime([])})
         
         for program in self._core_programs:
@@ -328,15 +328,12 @@ class ManagerUniverse:
         Returns:
             pd.DataFrame: Equal-weighted rate of returns. Columns are program, rows are months.
         """
-        # Create a DataFrame to hold the weighted returns
         weighted_returns_df = pd.DataFrame({'Date': pd.to_datetime([])})
         
-        # Calculate equal weight
         num_programs = len(self._core_programs)
         equal_weight = 1 / num_programs
         
         for program in self._core_programs:
-            # Calculate weighted returns using equal weight
             if iter:
                 timeseries = program.test_timeseries
             else:

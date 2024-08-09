@@ -1,3 +1,7 @@
+"""
+This file handles the main workflow for running the algorithm.
+"""
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -40,10 +44,15 @@ def calculate_metrics(df):
 
 def Portfolio_Performance(df_list):
     """
-    For each differently weighted dataframe of returns, create one portfolio and plot it. 
+    Creates one portfolio for each dataframe of weighted timeseries.
 
     Parameters: 
-        df_list (list(pd.DataFrame)): List of differently weighted returns.
+        df_list (list(pd.DataFrame)): List of differently weighted timeseries.
+
+    Returns:
+        matplotlib.figure.Figure: A linechart with one or more lines. Each line represents a hypothetical portfolio
+            created using a certain weighing style.
+        string: An output string summarizing the stats of each portfolio.
     """
     weight_order = ["EMP Weights", "Vol Weights", "Equal Weights"]
     plt.figure(figsize=(25, 10))
@@ -67,23 +76,20 @@ def Static_Performance(corr, start_date, end_date, core_folder, other_folder):
         corr (int): The minimum correlation between each program in a cluster.
         start_date (string): The start date for each program's timeseries.
         end_date (string): The end date for each program's timeseries.
+        core_folder (string): File path to folder containing the core programs' csvs.
+        other_folder (string): File path to folder containing other programs' csvs.
 
     Returns:
         list(pd.Dataframe): A list of dataframes. Each dataframe has every program's weighted timeseries.
         pd.Dataframe: A dataFrame of programs, performance measures, and scores.
     """
-    # Initialize dataframes and variables
-    EMP_df = pd.DataFrame()
-    vol_df = pd.DataFrame()
-    equal_df = pd.DataFrame()
-    scores_df = pd.DataFrame()
-
+    # Create universe and run main algorithm
     universe = ManagerUniverse(corr)
     universe.populate_programs(core_folder, is_core=True, start_date=start_date, end_date=end_date)
     universe.populate_programs(other_folder, is_core=False, start_date=start_date, end_date=end_date)
     universe.perform_program_stats_calculations()
     universe.populate_clusters()
-
+    # Get dataframes of stats and all weighted timeseries
     scores_df = universe.ratings_df()
     EMP_df = universe.weighted_returns_portfolio(iter=False)
     vol_df = universe.volatility_weighted_returns_portfolio(iter=False)
