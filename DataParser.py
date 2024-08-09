@@ -20,7 +20,7 @@ from datetime import datetime
 CSV_DATETIME_FORMAT = '%Y-%m-%d'
 CSV_TYPE_FORMAT = {'Change': 'float64'}
 
-class MonthlyRor:
+class DataParser:
     """Data Access Object that contains information parsed from monthly ror CSVs.
 
     Instance Attributes:
@@ -32,51 +32,43 @@ class MonthlyRor:
 
     path: str
     manager_name: str
-    fund_name: str
+    program_name: str
     time_series: Timeseries
 
-    def __init__(self, path: str, manager_name=None, fund_name=None, time_series=None):
+    def __init__(self, path: str, manager_name=None, program_name=None, time_series=None):
         self.path = path
         self.manager_name = manager_name or ''
-        self.fund_name = fund_name or ''
+        self.program_name = program_name or ''
         self.time_series = time_series or []
     
     def get_timeseries(self, start_date=None, end_date=None):
-            """
-            Parses CSV with filepath self.path and updates self.manager_name, self.fund_name, and self.time_series
-            with parsed information, optionally filtering by start and end date.
+        """
+        Parses CSV with filepath self.path and updates self.manager_name, self.program_name, and self.time_series
+        with parsed information, optionally filtering by start and end date.
 
-            Parameters:
-                start_date: Start date for filtering (inclusive), a string in 'YYYY-MM-DD' format.
-                end_date: End date for filtering (inclusive), a string in 'YYYY-MM-DD' format.
+        Parameters:
+            start_date: Start date for filtering (inclusive), a string in 'YYYY-MM-DD' format.
+            end_date: End date for filtering (inclusive), a string in 'YYYY-MM-DD' format.
 
-            Returns:
-                Timeseries: Timeseries object containing dates and rors for the fund.
-            """
-            df = pd.read_csv(self.path, header=0)
-            df = df.astype(CSV_TYPE_FORMAT)  # Prev: Ensure the 'Change' column is converted correctly
-            # Flagged. Inconcsistent capitalization of "date", possible bug?
-            df["date"] = pd.to_datetime(df["Date"])
-            
-            if start_date:
-                df = df[df['date'] >= start_date]
-            if end_date:
-                df = df[df['date'] <= end_date]
+        Returns:
+            Timeseries: Timeseries object containing dates and rors for the fund.
+        """
+        df = pd.read_csv(self.path, header=0)
+        df = df.astype(CSV_TYPE_FORMAT)  # Prev: Ensure the 'Change' column is converted correctly
+        df['Date'] = pd.to_datetime(df['Date'])
+        
+        # Get manager and program name from first row
+        self.manager_name = df.iloc[0, 0]
+        self.program_name = df.iloc[0, 1]
+        
+        if start_date:
+            df = df[df['Date'] >= start_date]
+        if end_date:
+            df = df[df['Date'] <= end_date]
 
-            # Flagged. Need to do something here to ensure df is not empty.
+        dates = df['Date'].tolist()
+        rors = df['Change'].tolist()
+        time_series = Timeseries(dates=dates, rors=rors)
 
-            time_series = Timeseries()
-            for row in df.itertuples(index=False, name=None):
-                date = datetime.strptime(row[2], CSV_DATETIME_FORMAT).date()
-                time_series.dates.append(date)
-                time_series.rors.append(row[3])
-
-                # Update manager_name and fund_name from the first row if they are empty
-                # Flagged. Bad code style. 
-                if self.manager_name == '':
-                    self.manager_name = row[0]  # Assuming the first element is the manager name
-                if self.fund_name == '':
-                    self.fund_name = row[1]  # Assuming the second element is the fund name
-
-            self.time_series = time_series
-            return self.time_series
+        self.time_series = time_series
+        return self.time_series
