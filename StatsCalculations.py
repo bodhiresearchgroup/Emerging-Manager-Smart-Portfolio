@@ -18,14 +18,13 @@ def calc_omega_score(rors: list) -> float:
     """
     # turning compounded annualized threshold into monthly threshold
     monthly_threshold = math.pow((1 + OMEGA_ANNUALIZED_THRESHOLD), 1 / 12) - 1
-    numerator = sum(rors) / len(rors) - monthly_threshold
-    rors_below_threshold = [ror for ror in rors if ror < monthly_threshold]
-    denominator = sum([monthly_threshold - ror for ror in rors_below_threshold]) / len(rors)
 
-    if denominator != 0:
-        return numerator / denominator + 1
-    else:
-        return None
+    differences = rors - monthly_threshold
+    numerator = np.sum(differences[differences > 0])
+    denominator = np.sum(abs(differences[differences < 0]))
+    omega_ratio = numerator / denominator if denominator != 0 else None
+
+    return omega_ratio
     
 
 def calc_cumulative_returns(rors: list) -> float:
