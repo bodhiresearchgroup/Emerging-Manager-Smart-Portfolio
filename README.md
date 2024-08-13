@@ -46,7 +46,7 @@ To be added:
 - Deep Field Capital (multiple strategies?)
 - III Capital (equity market-neutral program) (hypothetical data?)
 
-Note: Data last updated to 2024-05-01 by Sharon for all programs in list. Old program .csv's that are no longer of interest are stored in the 'Old data' folder.
+Note: Data last updated to 2024-05-01 by Sharon for all programs in above list. 
 
 ## Key Steps
 1. Initialize the algorithm.
