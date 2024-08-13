@@ -9,6 +9,19 @@ Algorithm for classifying emerging managers. For additional context, [Ranjan's p
 4. The main algorithm logic has been changed. For more information, see the function docstrings of `Static_Performance` and `Iterative_Performance` in `main.py`. As discussed with Ranjan, we will be using the `Static_Performance` method for now. 
 5. Major flagged errors have been resolved. All core programs in the `Data` folder can now be included when running the UI.
 6. The `Timeseries` class has been refactored to hold data in a pd.Series instead of two lists for memory efficiency, indexing, etc.
+7. Tests for `StatsCalculations.py` have been added. Tests are being run on `Test Manager.csv` in the `tests` folder. 
+
+## TODO
+- Modify the way we calculate drawdown (area instead of max). 
+- Write tests for any functions you write. Start with StatsCalculations.py. Create new datasets to test on if necessary.
+- Determine edge case behaviour:
+    - Omega ratio can't be calculated in time periods with no negative returns.
+    - How to handle clusters containing only 1 program. (Should we enforce min cluster size?)
+    - How to handle case where drawdown never recovers?
+    - etc.
+- Implement new metrics to measure the programs' performance.
+- Implement new ways to display the data/results.
+- Implement functionality that allows the user to specify which datasets to use. Potential extensions: random dataset generator, filter datasets based on different properties, etc.
 
 ## Current list of programs:
 - Aegeri Capital
@@ -94,12 +107,6 @@ Before working on the code, please read the following [Guide to GitHub Workflow]
 3. Click 'Open the project in your external editor' (e.g., VSCode)
 4. Set up a virtual environment for this project. 
 5. Create your own branch and make all edits there. 
-
-## TODO
-- Modify the way we weigh drawdown. 
-- Implement new metrics to measure the programs' performance.
-- Implement new ways to display the data/results.
-- Implement functionality that allows the user to specify which datasets to use. Potential extensions: random dataset generator, filter datasets based on different properties, etc.
 
 ## Current Bugs & Issues
 1. Undefined behaviour when omega score/sharpe ratio/drawdown cannot be calculated for a program.
