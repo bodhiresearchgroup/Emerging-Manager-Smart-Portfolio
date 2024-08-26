@@ -25,10 +25,13 @@ Algorithm for classifying emerging managers. For additional context, [Ranjan's p
 
 ## Current list of programs:
 - Aegeri Capital
+- Asset Management One
 - Bastion Asset Management (BAM LS Equity Class M)
 - Breakout
 - Castlefield Associates (Global Systematic)
 - DCM Systematic (Diversified Alpha)
+- Deep Field Capital (Short-Term Absolute Program)
+- III Capital (Equity Market-Neutral Program)
 - Landscape (Capital Partners)
 - Machina (Neutron)
 - Mulvaney Capital (Global Markets)
@@ -37,14 +40,10 @@ Algorithm for classifying emerging managers. For additional context, [Ranjan's p
 - Pula Capital
 - Rosetta (DL One)
 - Rosetta (RL One)
+- Tc43
 - Teza (Microstructure)
 - Teza (Systematic Futures)
-- Tc43
 - Trident (GME)
-
-To be added:
-- Deep Field Capital (multiple strategies?)
-- III Capital (equity market-neutral program) (hypothetical data?)
 
 Note: Data last updated to 2024-05-01 by Sharon for all programs in above list. 
 
