@@ -22,14 +22,14 @@ st.title('Portfolio Analysis Tool')
 
 # User inputs for correlation and date range
 correlation_parameter = st.sidebar.slider('Correlation Parameter', min_value=0.0, max_value=1.0, value=0.3, step=0.05)
-start_date_input = st.sidebar.date_input('Start Date', value=pd.to_datetime('2022-01-01'))
-end_date_input = st.sidebar.date_input('End Date', value=pd.to_datetime('2024-04-01'))
+start_date_input = st.sidebar.date_input('Start Date', value=pd.to_datetime('2019-01-01'))
+end_date_input = st.sidebar.date_input('End Date', value=pd.to_datetime('2024-06-01'))
 
 # Initialize arguments for the main algorithm
 start_date = start_date_input.strftime('%Y-%m-%d')
 end_date = end_date_input.strftime('%Y-%m-%d')
-core_folder = 'Data'
-other_folder = 'Old data'
+core_folder = 'data/core programs'
+other_folder = 'data/other programs'
 
 # Get the weighted timeseries for each program from the main algorithm
 df_list, scores_df = Static_Performance(correlation_parameter, start_date, end_date, core_folder, other_folder)
@@ -42,6 +42,9 @@ plt, stats = Portfolio_Performance(df_list)
 st.text(stats)
 st.pyplot(plt)
 
+st.subheader('Scores and Weights DataFrame')
+st.dataframe(scores_df)
+
 st.subheader('EMP Portfolio Performance DataFrame')
 st.dataframe(EMP_df)
 
@@ -50,6 +53,3 @@ st.dataframe(vol_df)
 
 st.subheader('Equal Weighted Portfolio Performance DataFrame')
 st.dataframe(equal_df)
-
-st.subheader('Scores and Weights DataFrame')
-st.dataframe(scores_df)

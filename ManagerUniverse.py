@@ -23,6 +23,8 @@ import numpy as np
 
 import pandas as pd
 
+OMEGA_ANNUALIZED_THRESHOLD = 0.01  
+
 class ManagerUniverse:
     """ Maintains all entities.
     
@@ -88,9 +90,12 @@ class ManagerUniverse:
         """
         Performs all stats calculations on each program in the universe.
         """
+        dp = DataParser("data/sp500.csv")
+        s_and_p = dp.get_timeseries()
+
         for program in chain(self._core_programs, self._other_programs):
             rors = program.timeseries.get_rors()
-            program.omega_score = calc_omega_score(rors)
+            program.omega_score = calc_omega_score(rors, OMEGA_ANNUALIZED_THRESHOLD)
             if program.omega_score is None:
                 print(f"Could not calculate Omega score for {program.name}")
             program.sharpe_ratio = calc_sharpe_ratio(rors)
@@ -99,9 +104,10 @@ class ManagerUniverse:
             if len(rors) < 2:
                 print(f"Could not perform drawdown analysis for {program.name}")
             else:
-                program.max_drawdown = calc_max_drawdown(rors)
-                program.max_drawdown_length = calc_max_drawdown_length(rors)
-                program.max_drawdown_duration = calc_max_drawdown_duration(rors)
+                program.max_drawdown = calc_weighted_drawdown_area(rors, False, True)
+            program.pop_to_drop = calc_pop_to_drop(rors, 95, 5)
+            program.gain_to_pain = calc_gain_to_pain(program.timeseries, s_and_p)
+            
         # Flagged. Need to establish algorithm's behaviour when a score can't be calculated.
 
 
@@ -151,11 +157,17 @@ class ManagerUniverse:
 
             max_dd_data = [program.max_drawdown for program in each_cluster.programs]
             head_max_dd_percentile = percentileofscore(max_dd_data, each_cluster.head.max_drawdown)
-            percentile_list.append(100 - head_max_dd_percentile)
+            percentile_list.append(head_max_dd_percentile)
 
             sharpe_data = [program.sharpe_ratio for program in each_cluster.programs]
             head_sharpe_percentile = percentileofscore(sharpe_data, each_cluster.head.sharpe_ratio)
             percentile_list.append(head_sharpe_percentile)
+
+            ptd_data = [program.pop_to_drop for program in each_cluster.programs]
+            gtp_data = [program.gain_to_pain for program in each_cluster.programs]
+            head_ptd_percentile = percentileofscore(ptd_data, each_cluster.head.pop_to_drop)
+            head_gtp_percentile = percentileofscore(gtp_data, each_cluster.head.gain_to_pain)
+            percentile_list.append((head_ptd_percentile + head_gtp_percentile)/2)
 
             # Calculate the program's overall, unnormalized performance score and store it in a list
             each_cluster.head.overall_score = self.assign_score(np.mean(percentile_list))
@@ -215,7 +227,7 @@ class ManagerUniverse:
         # Assign volatility scores to each program
         for i, program in enumerate(self._core_programs):
             program.vol_weight = normalized_vol_weights[i]
-        ratings_df["Vol Weights"] = normalized_vol_weights
+        # ratings_df["Vol Weights"] = normalized_vol_weights
 
 
     def assign_score(self, mean):

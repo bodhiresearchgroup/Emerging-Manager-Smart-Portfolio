@@ -11,6 +11,15 @@ from ManagerUniverse import ManagerUniverse
 ####
 # Analysis
 ####
+def export_portfolio(df):
+    monthly_returns = df.sum(axis=1)
+    # Convert the Series to a DataFrame
+    df = monthly_returns.reset_index()
+    df.columns = ['Date', 'Change']
+    # Export to CSV
+    df.to_csv('output\Hypothetical Portfolio.csv', index=False)
+
+
 def calculate_metrics(df):
     """
     Calculates the cumulative returns, total return, annualized return, annualized standard deviation, 
@@ -33,12 +42,11 @@ def calculate_metrics(df):
     sharpe_ratio = calc_sharpe_ratio(monthly_returns)
     
     metrics = {
-        'Total Return (%)': total_return,
-        'Annualized Return (%)': annualized_return,
-        'Annualized Std Dev (%)': annualized_std,
-        'Sharpe Ratio': sharpe_ratio,
+        'Total Ret (%)': round(total_return, 3),
+        'Ann Ret (%)': round(annualized_return, 3),
+        'Ann Std Dev (%)': round(annualized_std, 3),
+        'Sharpe Ratio': round(sharpe_ratio, 3)
     }
-    
     return cumulative_returns, metrics
 
 
@@ -155,12 +163,13 @@ def Iterative_Performance(corr, start_date, end_date, core_folder, other_folder)
 
 if __name__ == '__main__':
     correlation_parameter = 0.3
-    start_date = '2022-01-01'
-    end_date = '2024-04-01'
-    core_folder = 'Data'
-    other_folder = 'Old data'
+    start_date = '2019-01-01'
+    end_date = '2024-06-01'
+    core_folder = 'data/core programs'
+    other_folder = 'data/other programs'
 
     df_list, scores_df = Static_Performance(correlation_parameter, start_date, end_date, core_folder, other_folder)
+    export_portfolio(df_list[0])
     plt, stats = Portfolio_Performance(df_list)
     plt.show()
     print("")
