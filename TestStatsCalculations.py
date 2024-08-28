@@ -3,10 +3,11 @@ This file contains tests for the statistical calculations performed in 'StatsCal
 """
 
 import pytest
+import math
 from DataParser import DataParser
 from StatsCalculations import calc_drawdown_series, calc_max_drawdown, \
-    calc_max_drawdown_length, calc_max_drawdown_duration, calc_omega_score, \
-    calc_cumulative_returns, calc_ann_return, calc_sharpe_ratio
+    calc_omega_score, calc_cumulative_returns, calc_ann_return, calc_sharpe_ratio, \
+    calc_max_drawdown_length_index, calc_max_drawdown_duration_index, calc_weighted_drawdown_area
 
 TEST_FOLDER = 'tests'
 TEST_FILE = 'Test Program.csv'
@@ -22,8 +23,8 @@ class TestStatsCalculations:
 
     def test_calc_omega_score(self) -> None:
         """Tests the Omega ratio of a test manager."""
-        omega_ratio = calc_omega_score(self.rors)
-        assert pytest.approx(omega_ratio, 1e-3) == 1.284
+        omega_ratio = calc_omega_score(self.rors, 0.1)
+        assert pytest.approx(omega_ratio, 1e-3) == 1.003
 
 
     def test_calc_cumulative_returns(self) -> None:
@@ -57,6 +58,25 @@ class TestStatsCalculations:
         max_drawdown = calc_max_drawdown(self.rors)
         assert pytest.approx(max_drawdown, 1e-3) == -0.209521156
 
+
+    def test_calc_max_drawdown_length_index(self) -> None:
+        """Tests the max drawdown length indices of a test manager."""
+        peak_index, trough_index = calc_max_drawdown_length_index(self.rors)
+        assert peak_index == 3
+        assert trough_index == 6
+
+
+    def test_calc_max_drawdown_duration_index(self) -> None:
+        """Tests the max drawdown duration indices of a test manager."""
+        start_index, end_index = calc_max_drawdown_duration_index(self.rors)
+        assert start_index == 3
+        assert end_index == 13
+
+
+    def test_calc_weighted_drawdown_area(self) -> None:
+        """Tests the weighted drawdown area of a test manager."""
+        weighted_area = calc_weighted_drawdown_area(self.rors, whole=True, duration=False, base=math.e)
+        assert pytest.approx(weighted_area, 1e-3) == 0.0778
 
 ###
 # Currently unused functions

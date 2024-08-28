@@ -91,7 +91,8 @@ class Program:
     max_drawdown: float
     max_drawdown_length: int
     max_drawdown_duration: int
-    weighted_returns: float
+    pop_to_drop: float
+    gain_to_pain: float
 
     def __init__(self, manager: str, fund_name: str,
                  timeseries: Timeseries, test_timeseries=None) -> None:
@@ -106,7 +107,8 @@ class Program:
         self.max_drawdown = None
         self.max_drawdown_length = None
         self.max_drawdown_duration = None
-
+        self.pop_to_drop = None
+        self.gain_to_pain = None
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
