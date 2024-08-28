@@ -2,8 +2,14 @@
 
 Algorithm for classifying emerging managers. For additional context, [Ranjan's presentation.](https://drive.google.com/file/d/1wgCMWrMdHSyIR8qijBLeFdekC_snpbPq/view?usp=sharing)
 
-## UPDATES (Aug 12)
-1. The algorithm has been modified to include a larger dataset, with clusters being formed only around a subset of core programs (see list below). Non-core programs are located in the folder `Old data`.
+## UPDATES (Aug 28)
+1. New metrics pop to drop and modified gain to pain have been added to the algorithm.
+2. Drawdown calculation has been changed to a weighted maximum drawdown area.
+3. Tests have been added for new drawdown calculations.
+4. Additional other program .csv files have been added. All data has been moved to the `data` folder.
+
+(Aug 12)
+1. The algorithm has been modified to include a larger dataset, with clusters being formed only around a subset of core programs (see list below). 
 2. The scoring system of the algorithm has been modified to give each core program a score from 1-3, with 3 being the best. The weight for each program is calculated using this score, normalized.
 3. `main.py` has been added for modularization. Namely, `calculate_metrics` and `Portfolio_Performance` have been moved from `ManagerUniverse.py`. The main algorithm in `UI_EMP.py` has also been moved to `main.py`. 
 4. The main algorithm logic has been changed. For more information, see the function docstrings of `Static_Performance` and `Iterative_Performance` in `main.py`. As discussed with Ranjan, we will be using the `Static_Performance` method for now. 
