@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 from StatsCalculations import calc_cumulative_returns, calc_ann_return, calc_sharpe_ratio
 from ManagerUniverse import ManagerUniverse
+from datetime import datetime
 
 ####
 # Analysis
@@ -16,8 +17,12 @@ def export_portfolio(df):
     # Convert the Series to a DataFrame
     df = monthly_returns.reset_index()
     df.columns = ['Date', 'Change']
+    df['Change'] = df['Change'].round(4)
+    # Get today's date in YYYY-MM-DD format
+    today = datetime.today().strftime('%Y-%m-%d')
+    file_name = f'output/Hypothetical Portfolio {today}.csv'
     # Export to CSV
-    df.to_csv('output\Hypothetical Portfolio.csv', index=False)
+    df.to_csv(file_name, index=False)
 
 
 def calculate_metrics(df):
@@ -93,12 +98,19 @@ def Static_Performance(corr, start_date, end_date, core_folder, other_folder):
     """
     # Create universe and run main algorithm
     universe = ManagerUniverse(corr)
+    # Populate the universe with all programs
     universe.populate_programs(core_folder, is_core=True, start_date=start_date, end_date=end_date)
     universe.populate_programs(other_folder, is_core=False, start_date=start_date, end_date=end_date)
-    universe.perform_program_stats_calculations()
-    universe.populate_clusters()
+    # Create clusters and evaluate programs based on the program's timeseries up to a specified date
+    universe.perform_program_stats_calculations(full_timeseries=False)
+    universe.populate_clusters(full_timeseries=False)
+    universe.assign_scores()
+    # Create clusters and evaluate programs based on the program's full timeseries
+    universe.perform_program_stats_calculations(full_timeseries=True)
+    universe.populate_clusters(full_timeseries=True)
+    universe.assign_scores()
     # Get dataframes of stats and all weighted timeseries
-    scores_df = universe.ratings_df()
+    scores_df = universe.ratings_df(w=0.8)
     EMP_df = universe.weighted_returns_portfolio(iter=False)
     vol_df = universe.volatility_weighted_returns_portfolio(iter=False)
     equal_df = universe.equal_weighted_returns_portfolio(iter=False)
@@ -164,7 +176,7 @@ def Iterative_Performance(corr, start_date, end_date, core_folder, other_folder)
 if __name__ == '__main__':
     correlation_parameter = 0.3
     start_date = '2019-01-01'
-    end_date = '2024-06-01'
+    end_date = '2024-10-01'
     core_folder = 'data/core programs'
     other_folder = 'data/other programs'
 
