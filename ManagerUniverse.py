@@ -29,11 +29,11 @@ class ManagerUniverse:
     """ Maintains all entities.
     
     Instance Attributes:
-    - _core_programs: The emerging managers that we are interested in buiding clusters around.
+    - _emerging_programs: The emerging managers that we are buiding clusters around and evaluating.
     - _other_programs: The other managers in the universe.
     - correlation_value: The minimum correlation between each program in a cluster.
     """
-    _core_programs: list
+    _emerging_programs: list
     _other_programs: list
     _clusters: list
     # Prev: add cluster definite corr?
@@ -43,12 +43,12 @@ class ManagerUniverse:
         """Initialize a new Emerging Managers universe.
         The universe starts with no entities.
         """
-        self._core_programs = []
+        self._emerging_programs = []
         self._other_programs = []
         self._clusters = []
         self.corr = correlation_value
 
-    def populate_programs(self, path: str, is_core: bool, start_date=None, end_date=None, test_start_date=None, test_end_date=None) -> None:
+    def populate_programs(self, path: str, is_emerging: bool, start_date=None, end_date=None, test_start_date=None, test_end_date=None) -> None:
         """
         Create Program objects from all CSVs in provided folder. Add them to Universe.
 
@@ -64,7 +64,9 @@ class ManagerUniverse:
                 continue
             # print(i, filename)
 
-            dp = DataParser(path + '/' + filename)  # complete filepath to CSV from source
+            dp = DataParser(path + '/' + filename)  # complete filepath to CSV from source]
+
+            full_timeseries = dp.get_timeseries(start_date=start_date, end_date=None)
 
             timeseries = dp.get_timeseries(start_date=start_date, end_date=end_date)
             if timeseries.get_len() < 2:
@@ -79,22 +81,25 @@ class ManagerUniverse:
             fund_name: str = dp.program_name
 
             # Generate a new Program object for each CSV and append this new program into the universe program list.
-            new_program = Program(manager_name, fund_name, timeseries, test_timeseries)
-            if is_core:
-                self._core_programs.append(new_program)
+            new_program = Program(manager_name, fund_name, full_timeseries, timeseries, test_timeseries)
+            if is_emerging:
+                self._emerging_programs.append(new_program)
             else:
                 self._other_programs.append(new_program)
 
 
-    def perform_program_stats_calculations(self):
+    def perform_program_stats_calculations(self, full_timeseries: bool):
         """
         Performs all stats calculations on each program in the universe.
         """
         dp = DataParser("data/sp500.csv")
         s_and_p = dp.get_timeseries()
 
-        for program in chain(self._core_programs, self._other_programs):
-            rors = program.timeseries.get_rors()
+        for program in chain(self._emerging_programs, self._other_programs):
+            if full_timeseries:
+                rors = program.timeseries.get_rors()
+            else:
+                rors = program.full_timeseries.get_rors()                
             program.omega_score = calc_omega_score(rors, OMEGA_ANNUALIZED_THRESHOLD)
             if program.omega_score is None:
                 print(f"Could not calculate Omega score for {program.name}")
@@ -106,12 +111,12 @@ class ManagerUniverse:
             else:
                 program.max_drawdown = calc_weighted_drawdown_area(rors, False, True)
             program.pop_to_drop = calc_pop_to_drop(rors, 95, 5)
-            program.gain_to_pain = calc_gain_to_pain(program.timeseries, s_and_p)
+            program.gain_to_pain = calc_gain_to_pain(program.full_timeseries, s_and_p)
             
         # Flagged. Need to establish algorithm's behaviour when a score can't be calculated.
 
 
-    def populate_clusters(self):
+    def populate_clusters(self, full_timeseries: bool):
         """
         For each program, create a set that contains all programs with corr > 0.65.
         Then, create a cluster object that contains the head program and the set we just created. 
@@ -119,13 +124,17 @@ class ManagerUniverse:
 
         Prev: create eq and hash function for Program class?
         """
-        for head in self._core_programs:
+        self._clusters = []
+        for head in self._emerging_programs:
             cluster = set()
             cluster.add(head)
-            for others in chain(self._core_programs, self._other_programs):
+            for others in chain(self._emerging_programs, self._other_programs):
                 if others.name != head.name:
                     # Get correlation between two program' synced rors
-                    corr = calc_pearson_correlation(head.timeseries, others.timeseries)
+                    if full_timeseries:
+                        corr = calc_pearson_correlation(head.full_timeseries, others.full_timeseries)
+                    else:
+                        corr = calc_pearson_correlation(head.timeseries, others.timeseries)
                     if corr > self.corr:
                         cluster.add(others)
                 
@@ -133,20 +142,10 @@ class ManagerUniverse:
             self._clusters.append(new_cluster)
 
 
-    def ratings_df(self):
+    def assign_scores(self):
         """
-        Assigns scores to each program based on performance relative to the others.
-
-        Returns:
-            pd.DataFrame: Pandas DataFrame of programs, performance measures, and scores.
+        Assigns scores to each program based on performance relative to its cluster.
         """
-        program_score = []
-        program_name = []
-        program_omega_score = []
-        program_sharpe_ratio = []
-        program_maxdrawdown = []
-        ratings_df = pd.DataFrame()
-        
         # Calculate the performance of the each program relative to the others in its cluster
         for each_cluster in self._clusters:
             percentile_list = []
@@ -169,15 +168,36 @@ class ManagerUniverse:
             head_gtp_percentile = percentileofscore(gtp_data, each_cluster.head.gain_to_pain)
             percentile_list.append((head_ptd_percentile + head_gtp_percentile)/2)
 
+            each_cluster.head.scores.append(np.mean(percentile_list))
+
+
+    def ratings_df(self, w):
+        """
+        Get the scores of each program.
+
+        Parameters:
+            w: The weight to give to the program's first score. 
+
+        Returns:
+            pd.DataFrame: Pandas DataFrame of programs, performance measures, and scores.
+        """
+        program_score = []
+        program_name = []
+        program_omega_score = []
+        program_sharpe_ratio = []
+        program_maxdrawdown = []
+        ratings_df = pd.DataFrame()
+
+        for program in self._emerging_programs:
             # Calculate the program's overall, unnormalized performance score and store it in a list
-            each_cluster.head.overall_score = self.assign_score(np.mean(percentile_list))
-            program_score.append(each_cluster.head.overall_score)
+            program.overall_score = self.assign_score(w * program.scores[0] + (1 - w) * program.scores[1])
+            program_score.append(program.overall_score)
             
             # Store each program's name and stats in lists
-            program_name.append(each_cluster.head.name)
-            program_omega_score.append(each_cluster.head.omega_score)
-            program_sharpe_ratio.append(each_cluster.head.sharpe_ratio)
-            program_maxdrawdown.append(each_cluster.head.max_drawdown)
+            program_name.append(program.name)
+            program_omega_score.append(program.omega_score)
+            program_sharpe_ratio.append(program.sharpe_ratio)
+            program_maxdrawdown.append(program.max_drawdown)
 
         # Create dataframe 
         ratings_df = pd.DataFrame({
@@ -193,7 +213,7 @@ class ManagerUniverse:
 
         # Normalize the overall program scores (from 0-100). 
         normalized_weights = program_score / np.sum(program_score)
-        for i, program in enumerate(self._core_programs):
+        for i, program in enumerate(self._emerging_programs):
             program.overall_weight = normalized_weights[i]
 
         ratings_df["Weights"] = normalized_weights
@@ -212,7 +232,7 @@ class ManagerUniverse:
             ratings_df (pd.Dataframe): The dataframe that stores the weights.
         """
         program_volatility = []
-        for program in self._core_programs:
+        for program in self._emerging_programs:
             program_volatility.append(np.std(program.timeseries.get_rors()))
         
         # Invert the volatilities
@@ -225,7 +245,7 @@ class ManagerUniverse:
         normalized_vol_weights = normalized_vol_weights / np.sum(normalized_vol_weights)
 
         # Assign volatility scores to each program
-        for i, program in enumerate(self._core_programs):
+        for i, program in enumerate(self._emerging_programs):
             program.vol_weight = normalized_vol_weights[i]
         # ratings_df["Vol Weights"] = normalized_vol_weights
 
@@ -256,10 +276,10 @@ class ManagerUniverse:
         """
         program_df = pd.DataFrame({'Date': pd.to_datetime([])})
         
-        for program in self._core_programs:
+        for program in self._emerging_programs:
             df = pd.DataFrame({
-                'Date': program.timeseries.get_dates(),
-                f'{program.name}': program.timeseries.get_rors(),
+                'Date': program.full_timeseries.get_dates(),
+                f'{program.name}': program.full_timeseries.get_rors(),
             })
             program_df = pd.merge(program_df, df, on='Date', how='outer')
         
@@ -271,7 +291,6 @@ class ManagerUniverse:
     ####
     # Weighted Portfolios
     ####
-    # FLAGGED. There is duplicate code below that may be mergeable. (Pass weight type as param?)
 
     def weighted_returns_portfolio(self, iter: bool):
         """
@@ -283,12 +302,12 @@ class ManagerUniverse:
         # Create a DataFrame to hold the weighted returns
         weighted_returns_df = pd.DataFrame({'Date': pd.to_datetime([])})
         
-        for program in self._core_programs:
+        for program in self._emerging_programs:
             # Calculate weighted returns for each program
             if iter:
                 timeseries = program.test_timeseries
             else:
-                timeseries = program.timeseries
+                timeseries = program.full_timeseries
 
             weighted_rors = program.overall_weight * timeseries.get_rors()
             weighted_program_df = pd.DataFrame({
@@ -313,11 +332,11 @@ class ManagerUniverse:
         """
         vol_weighted_returns_df = pd.DataFrame({'Date': pd.to_datetime([])})
         
-        for program in self._core_programs:
+        for program in self._emerging_programs:
             if iter:
                 timeseries = program.test_timeseries
             else:
-                timeseries = program.timeseries
+                timeseries = program.full_timeseries
 
             vol_weighted_rors = program.vol_weight * timeseries.get_rors()
 
@@ -342,14 +361,14 @@ class ManagerUniverse:
         """
         weighted_returns_df = pd.DataFrame({'Date': pd.to_datetime([])})
         
-        num_programs = len(self._core_programs)
+        num_programs = len(self._emerging_programs)
         equal_weight = 1 / num_programs
         
-        for program in self._core_programs:
+        for program in self._emerging_programs:
             if iter:
                 timeseries = program.test_timeseries
             else:
-                timeseries = program.timeseries
+                timeseries = program.full_timeseries
 
             weighted_rors = equal_weight * timeseries.get_rors()  
 

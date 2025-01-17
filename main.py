@@ -81,7 +81,7 @@ def Portfolio_Performance(df_list):
     return plt, output_string
 
 
-def Static_Performance(corr, start_date, end_date, core_folder, other_folder):
+def Static_Performance(corr, start_date, end_date, emerging_programs, other_programs):
     """
     Runs the main algorithm once based on data from start date to end date.
 
@@ -89,8 +89,8 @@ def Static_Performance(corr, start_date, end_date, core_folder, other_folder):
         corr (int): The minimum correlation between each program in a cluster.
         start_date (string): The start date for each program's timeseries.
         end_date (string): The end date for each program's timeseries.
-        core_folder (string): File path to folder containing the core programs' csvs.
-        other_folder (string): File path to folder containing other programs' csvs.
+        emerging_programs (string): File path to folder containing the emerging programs' csvs.
+        other_programs (string): File path to folder containing other programs' csvs.
 
     Returns:
         list(pd.Dataframe): A list of dataframes. Each dataframe has every program's weighted timeseries.
@@ -99,8 +99,8 @@ def Static_Performance(corr, start_date, end_date, core_folder, other_folder):
     # Create universe and run main algorithm
     universe = ManagerUniverse(corr)
     # Populate the universe with all programs
-    universe.populate_programs(core_folder, is_core=True, start_date=start_date, end_date=end_date)
-    universe.populate_programs(other_folder, is_core=False, start_date=start_date, end_date=end_date)
+    universe.populate_programs(emerging_programs, is_emerging=True, start_date=start_date, end_date=end_date)
+    universe.populate_programs(other_programs, is_emerging=False, start_date=start_date, end_date=end_date)
     # Create clusters and evaluate programs based on the program's timeseries up to a specified date
     universe.perform_program_stats_calculations(full_timeseries=False)
     universe.populate_clusters(full_timeseries=False)
@@ -120,7 +120,7 @@ def Static_Performance(corr, start_date, end_date, core_folder, other_folder):
     return df_list, scores_df
 
 
-def Iterative_Performance(corr, start_date, end_date, core_folder, other_folder):
+def Iterative_Performance(corr, start_date, end_date, emerging_programs, other_programs):
     """
     Iteratively runs the main algorithm, treating each data point as validation data. 
     I.e., for each month's returns, give it a weight based on performance from previous months.  
@@ -155,8 +155,8 @@ def Iterative_Performance(corr, start_date, end_date, core_folder, other_folder)
         test_date = date_range[i+1].strftime('%Y-%m-%d')
 
         universe = ManagerUniverse(corr)
-        universe.populate_programs(core_folder, is_core=True, start_date=start_date, end_date=end_date, test_start_date=test_date, test_end_date=test_date)
-        universe.populate_programs(other_folder, is_core=False, start_date=start_date, end_date=end_date)
+        universe.populate_programs(emerging_programs, is_emerging=True, start_date=start_date, end_date=end_date, test_start_date=test_date, test_end_date=test_date)
+        universe.populate_programs(other_programs, is_emerging=False, start_date=start_date, end_date=end_date)
         universe.perform_program_stats_calculations()
         universe.populate_clusters()
 
@@ -177,10 +177,10 @@ if __name__ == '__main__':
     correlation_parameter = 0.3
     start_date = '2019-01-01'
     end_date = '2024-10-01'
-    core_folder = 'data/core programs'
-    other_folder = 'data/other programs'
+    emerging_programs = 'data/core programs'
+    other_programs = 'data/other programs'
 
-    df_list, scores_df = Static_Performance(correlation_parameter, start_date, end_date, core_folder, other_folder)
+    df_list, scores_df = Static_Performance(correlation_parameter, start_date, end_date, emerging_programs, other_programs)
     export_portfolio(df_list[0])
     plt, stats = Portfolio_Performance(df_list)
     plt.show()
