@@ -81,10 +81,12 @@ class Program:
     """
     name: str
     manager: str
+    full_timeseries: Timeseries
     timeseries: Timeseries
     test_timeseries: Timeseries
     omega_score: float
     sharpe_ratio: float
+    scores: list
     overall_score: float
     overall_weight:float
     vol_weight:float
@@ -95,13 +97,16 @@ class Program:
     gain_to_pain: float
 
     def __init__(self, manager: str, fund_name: str,
-                 timeseries: Timeseries, test_timeseries=None) -> None:
+                 full_timeseries: Timeseries, timeseries: Timeseries, test_timeseries=None) -> None:
         self.name = fund_name
         self.manager = manager
+        self.full_timeseries = full_timeseries
         self.timeseries = timeseries
         self.test_timeseries = test_timeseries or None
         self.omega_score = None
         self.sharpe_ratio = None
+        self.scores = []
+        self.overall_score = None
         self.overall_weight = None
         self.vol_weight = None
         self.max_drawdown = None
@@ -131,7 +136,7 @@ class Cluster:
     - TODO: Prev: add a correlation matrix for all programs in Cluster?
     """
 
-    programs: set([])
+    programs: set
     head: Program
 
     def __init__(self, head_program, programs) -> None:
