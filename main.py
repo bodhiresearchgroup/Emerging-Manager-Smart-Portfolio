@@ -12,7 +12,14 @@ from datetime import datetime
 ####
 # Analysis
 ####
-def export_portfolio(df):
+def export_portfolio(df, path):
+    """
+    Exports a dataframe into a .CSV file.
+
+    Params:
+        df: The dataframe containing the timeseries.
+        path: The save path.
+    """
     monthly_returns = df.sum(axis=1)
     # Convert the Series to a DataFrame
     df = monthly_returns.reset_index()
@@ -20,7 +27,7 @@ def export_portfolio(df):
     df['Change'] = df['Change'].round(4)
     # Get today's date in YYYY-MM-DD format
     today = datetime.today().strftime('%Y-%m-%d')
-    file_name = f'output/Hypothetical Portfolio {today}.csv'
+    file_name = f'{path}Hypothetical Portfolio {today}.csv'
     # Export to CSV
     df.to_csv(file_name, index=False)
 
@@ -181,7 +188,7 @@ if __name__ == '__main__':
     other_programs = 'data/other programs'
 
     df_list, scores_df = Static_Performance(correlation_parameter, start_date, end_date, emerging_programs, other_programs)
-    export_portfolio(df_list[0])
+    export_portfolio(df_list[0], "output/")
     plt, stats = Portfolio_Performance(df_list)
     plt.show()
     print("")

@@ -173,46 +173,46 @@ class ManagerUniverse:
 
     def ratings_df(self, w):
         """
-        Get the scores of each program.
+        Get the scores of each program and normalize them into a percentage weight.
 
         Parameters:
-            w: The weight to give to the program's first score. 
+            w: The weight to give to the program's first score (two-step weighting system). 
 
         Returns:
             pd.DataFrame: Pandas DataFrame of programs, performance measures, and scores.
         """
-        program_score = []
-        program_name = []
-        program_omega_score = []
-        program_sharpe_ratio = []
-        program_maxdrawdown = []
+        program_scores = []
+        program_names = []
+        program_omega_scores = []
+        program_sharpe_ratios = []
+        program_maxdrawdowns = []
         ratings_df = pd.DataFrame()
 
         for program in self._emerging_programs:
             # Calculate the program's overall, unnormalized performance score and store it in a list
             program.overall_score = self.assign_score(w * program.scores[0] + (1 - w) * program.scores[1])
-            program_score.append(program.overall_score)
+            program_scores.append(program.overall_score)
             
             # Store each program's name and stats in lists
-            program_name.append(program.name)
-            program_omega_score.append(program.omega_score)
-            program_sharpe_ratio.append(program.sharpe_ratio)
-            program_maxdrawdown.append(program.max_drawdown)
+            program_names.append(program.name)
+            program_omega_scores.append(program.omega_score)
+            program_sharpe_ratios.append(program.sharpe_ratio)
+            program_maxdrawdowns.append(program.max_drawdown)
 
         # Create dataframe 
         ratings_df = pd.DataFrame({
-            "Name": program_name,
-            "Omega Value": program_omega_score,
-            "Sharpe Ratio": program_sharpe_ratio,
-            "Max Drawdown": program_maxdrawdown,
-            "Score": program_score
+            "Name": program_names,
+            "Omega Value": program_omega_scores,
+            "Sharpe Ratio": program_sharpe_ratios,
+            "Max Drawdown": program_maxdrawdowns,
+            "Score": program_scores
         })
 
         # Use the program names as the indices of the dataframe
         ratings_df.set_index("Name", inplace=True)
 
         # Normalize the overall program scores (from 0-100). 
-        normalized_weights = program_score / np.sum(program_score)
+        normalized_weights = program_scores / np.sum(program_scores)
         for i, program in enumerate(self._emerging_programs):
             program.overall_weight = normalized_weights[i]
 
